@@ -132,10 +132,10 @@
 
             xhr.addEventListener('error', () => {
                 result.className = 'result error';
-                result.innerHTML = '❌ 网络错误，请重试';
+                result.innerHTML = '⚠️ 上传可能已成功（连接中断）。<br>请<a href="/" target="_blank">刷新书库</a>查看，如未出现请重试。';
                 result.style.display = 'block';
                 uploadBtn.disabled = false;
-                progressText.textContent = '上传失败';
+                progressText.textContent = '连接中断，请确认书库';
             });
 
             xhr.send(formData);

@@ -56,12 +56,15 @@ class UploadHandler(BaseHTTPRequestHandler):
 
     def _send_json(self, code, data):
         body = json.dumps(data).encode()
-        self.send_response(code)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Content-Length', str(len(body)))
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.send_response(code)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Content-Length', str(len(body)))
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionResetError):
+            log.warning("Client disconnected before response sent (file likely accepted)")
 
     def do_OPTIONS(self):
         self.send_response(204)
@@ -142,9 +145,7 @@ class UploadHandler(BaseHTTPRequestHandler):
             threading.Thread(target=process_book, args=(filepath,), daemon=True).start()
 
         self._send_json(200, {
-            'status': 'accepted',
-            'files': saved,
-            'message': f'{len(saved)} file(s) accepted, processing in background'
+            'location': '/',
         })
         log.info("Accepted: %s", ', '.join(saved))
 

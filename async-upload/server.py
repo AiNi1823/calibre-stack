@@ -28,26 +28,35 @@ PORT = int(os.environ.get('ASYNC_UPLOAD_PORT', '8086'))
 os.makedirs(STAGING, exist_ok=True)
 os.makedirs(PROCESSED, exist_ok=True)
 
+# 串行化 calibredb，避免与 calibre-web 及并发线程争抢数据库锁
+CALIBRE_LOCK = threading.Lock()
+
 
 def process_book(filepath):
     fname = os.path.basename(filepath)
     log.info("Processing: %s", fname)
-    try:
-        result = subprocess.run(
-            ['calibredb', 'add', '--with-library', LIBRARY,
-             '--automerge', 'overwrite', filepath],
-            capture_output=True, text=True, timeout=300
-        )
-        if result.returncode == 0:
-            log.info("Added: %s", fname)
-            dest = os.path.join(PROCESSED, fname)
-            shutil.move(filepath, dest)
-        else:
-            log.error("Failed: %s → %s", fname, result.stderr.strip())
-    except subprocess.TimeoutExpired:
-        log.error("Timeout: %s", fname)
-    except Exception as e:
-        log.error("Error %s: %s", fname, e)
+    max_attempts = 3
+    for attempt in range(1, max_attempts + 1):
+        try:
+            with CALIBRE_LOCK:
+                result = subprocess.run(
+                    ['calibredb', 'add', '--with-library', LIBRARY,
+                     '--automerge', 'overwrite', filepath],
+                    capture_output=True, text=True, timeout=300
+                )
+            if result.returncode == 0:
+                log.info("Added: %s", fname)
+                dest = os.path.join(PROCESSED, fname)
+                shutil.move(filepath, dest)
+                return
+            log.error("Failed (attempt %d/%d): %s → %s",
+                      attempt, max_attempts, fname, result.stderr.strip())
+        except subprocess.TimeoutExpired:
+            log.error("Timeout (attempt %d/%d): %s", attempt, max_attempts, fname)
+        except Exception as e:
+            log.error("Error (attempt %d/%d) %s: %s", attempt, max_attempts, fname, e)
+        if attempt < max_attempts:
+            time.sleep(attempt)  # 指数退避：1s, 2s
 
 
 class UploadHandler(BaseHTTPRequestHandler):

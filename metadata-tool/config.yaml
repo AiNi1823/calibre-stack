@@ -1,0 +1,46 @@
+# Calibre Metadata Manager Configuration
+
+# Library settings
+library:
+  db_path: "/opt/calibre-library/Calibre Library/metadata.db"
+  cover_dir: "/opt/calibre-library/Calibre Library"
+
+# Network settings
+network:
+  proxy: "http://127.0.0.1:7890"
+  timeout: 15
+  user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+  rate_limit_delay: 1.5  # seconds between API calls
+
+# Source priority (order matters)
+sources:
+  - name: douban
+    enabled: true
+    base_url: "https://book.douban.com"
+    search_url: "https://book.douban.com/j/subject_suggest"
+  - name: openlibrary
+    enabled: true
+    base_url: "https://openlibrary.org"
+    search_url: "https://openlibrary.org/search.json"
+    cover_url: "https://covers.openlibrary.org/b/id/{cover_i}-L.jpg"
+    cover_isbn_url: "https://covers.openlibrary.org/b/isbn/{isbn}-L.jpg"
+
+# What to fill
+fields:
+  isbn: true
+  pubdate: true
+  description: true
+  tags: true
+  cover: true
+
+# Rules for when to skip
+skip:
+  existing_isbn: false      # false = always overwrite empty ISBN
+  existing_pubdate: false
+  existing_description: false
+  existing_cover: false
+
+# Cover settings
+cover:
+  min_size: 2000            # minimum bytes to consider valid
+  preferred_width: 400      # preferred minimum width

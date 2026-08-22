@@ -1,0 +1,16 @@
+[Unit]
+Description=Calibre Async Upload Service
+After=network.target
+
+[Service]
+Type=simple
+User=calibreweb
+Group=calibreweb
+WorkingDirectory=/opt/calibre-stack/async-upload
+Environment="CALIBRE_DBPATH=/opt/calibre-library/Calibre Library"
+ExecStart=/usr/bin/python3 /opt/calibre-stack/async-upload/server.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

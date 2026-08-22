@@ -1,0 +1,18 @@
+[Unit]
+Description=Calibre Web (ebook manager)
+After=network.target
+
+[Service]
+Type=simple
+User=calibreweb
+Group=calibreweb
+WorkingDirectory=/opt/calibre-web
+Environment=CALIBRE_DBPATH=/opt/calibre-web
+Environment=CALIBRE_PORT=8083
+ExecStart=/opt/calibre-web/venv/bin/cps -i 127.0.0.1
+Restart=always
+RestartSec=5
+OOMScoreAdjust=-500
+
+[Install]
+WantedBy=multi-user.target

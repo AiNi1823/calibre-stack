@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calibre 异步上传</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 30px; }
+        h1 { font-size: 24px; margin-bottom: 20px; color: #333; }
+        .upload-zone { border: 2px dashed #ccc; border-radius: 8px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .upload-zone:hover, .upload-zone.dragover { border-color: #4a90d9; background: #f0f7ff; }
+        .upload-zone p { color: #666; margin-bottom: 10px; }
+        .upload-zone .hint { font-size: 14px; color: #999; }
+        #fileInput { display: none; }
+        .btn { display: inline-block; padding: 10px 24px; background: #4a90d9; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 15px; }
+        .btn:hover { background: #357abd; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .progress { margin-top: 20px; display: none; }
+        .progress-bar { height: 20px; background: #4a90d9; border-radius: 4px; transition: width 0.3s; width: 0%; }
+        .progress-text { margin-top: 8px; font-size: 14px; color: #666; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 4px; display: none; }
+        .result.success { background: #d4edda; color: #155724; }
+        .result.error { background: #f8d7da; color: #721c24; }
+        .file-list { margin-top: 15px; text-align: left; }
+        .file-item { padding: 8px 12px; background: #f8f9fa; border-radius: 4px; margin-bottom: 5px; font-size: 14px; display: flex; justify-content: space-between; }
+        .nav { margin-top: 20px; text-align: center; }
+        .nav a { color: #4a90d9; text-decoration: none; }
+        .nav a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Calibre 异步上传</h1>
+        <p style="color: #666; margin-bottom: 20px;">文件上传后立即返回，后台自动添加到书库</p>
+
+        <div class="upload-zone" id="dropZone">
+            <p>拖拽文件到这里，或点击选择</p>
+            <p class="hint">支持 epub, pdf, mobi, azw3, cbz, txt, docx 等格式</p>
+            <input type="file" id="fileInput" multiple accept=".epub,.pdf,.mobi,.azw,.azw3,.cbz,.cbr,.txt,.docx,.fb2,.kepub,.djvu">
+        </div>
+
+        <div style="text-align: center;">
+            <button class="btn" id="uploadBtn" disabled>开始上传</button>
+        </div>
+
+        <div class="progress" id="progress">
+            <div class="progress-bar" id="progressBar"></div>
+            <div class="progress-text" id="progressText">准备中...</div>
+        </div>
+
+        <div class="result" id="result"></div>
+
+        <div class="file-list" id="fileList"></div>
+
+        <div class="nav">
+            <a href="/" target="_blank">← 返回 Calibre-Web</a>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const progress = document.getElementById('progress');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const result = document.getElementById('result');
+        const fileList = document.getElementById('fileList');
+
+        let selectedFiles = [];
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+        function handleFiles(files) {
+            selectedFiles = Array.from(files);
+            fileList.innerHTML = '';
+            selectedFiles.forEach(f => {
+                const size = (f.size / 1024 / 1024).toFixed(2);
+                fileList.innerHTML += `<div class="file-item"><span>${f.name}</span><span>${size} MB</span></div>`;
+            });
+            uploadBtn.disabled = selectedFiles.length === 0;
+        }
+
+        uploadBtn.addEventListener('click', () => {
+            if (selectedFiles.length === 0) return;
+
+            const formData = new FormData();
+            selectedFiles.forEach(f => formData.append('files', f));
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/upload', true);
+
+            progress.style.display = 'block';
+            result.style.display = 'none';
+            uploadBtn.disabled = true;
+
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const pct = Math.round((e.loaded / e.total) * 100);
+                    progressBar.style.width = pct + '%';
+                    progressText.textContent = `上传中... ${pct}%`;
+                }
+            });
+
+            xhr.addEventListener('load', () => {
+                if (xhr.status === 200) {
+                    const resp = JSON.parse(xhr.responseText);
+                    progressBar.style.width = '100%';
+                    progressBar.style.background = '#28a745';
+                    progressText.textContent = '上传完成，后台处理中...';
+                    result.className = 'result success';
+                    result.innerHTML = `✅ ${resp.message}<br>文件: ${resp.files.join(', ')}<br><br>书籍将在处理完成后自动出现在 Calibre-Web 中。`;
+                    result.style.display = 'block';
+                } else {
+                    result.className = 'result error';
+                    result.innerHTML = `❌ 上传失败: ${xhr.statusText}`;
+                    result.style.display = 'block';
+                    progressText.textContent = '上传失败';
+                }
+                uploadBtn.disabled = false;
+            });
+
+            xhr.addEventListener('error', () => {
+                result.className = 'result error';
+                result.innerHTML = '❌ 网络错误，请重试';
+                result.style.display = 'block';
+                uploadBtn.disabled = false;
+                progressText.textContent = '上传失败';
+            });
+
+            xhr.send(formData);
+        });
+    </script>
+</body>
+</html>

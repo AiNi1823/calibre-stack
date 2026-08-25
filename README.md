@@ -11,26 +11,29 @@
 | 组件 | 说明 | 运行方式 |
 |------|------|----------|
 | [metadata-tool](metadata-tool/) | 从豆瓣 / Open Library 自动补全书籍元数据（ISBN、出版日期、简介、封面） | CLI 手动/cron |
-| [async-upload](async-upload/) | HTTP 异步上传服务：立即返回 → 后台 `calibredb add` 入库 | systemd 常驻 |
+| [async-upload](async-upload/) | HTTP 异步上传服务：立即返回 → 后台 `calibredb add` 入库；含任务看板 `/tasks` 与 `task_store.py` | systemd 常驻 |
 | [deploy](deploy/) | nginx 配置、systemd 单元、部署脚本 | — |
 
 ## 架构
 
 ```
-浏览器 ──Cloudflare Tunnel──> nginx:8084 ─┬─ /async-upload      静态上传页
+浏览器 ──Cloudflare Tunnel──> nginx:8084 ─┬─ /async-upload      静态上传页（隐藏后备入口）
+                                          ├─ /tasks ───────────> async-upload:8086 任务看板
                                           ├─ /api/upload ──────> async-upload:8086
                                           │                        ├─ 立即返回 accepted
                                           │                        └─ 后台 calibredb add
                                           └─ 其余请求 ─────────> Calibre-Web(Tornado):8083
-                                                                        │
-                                                  共享 metadata.db <────┘
+                                                                         │
+                                                   共享 metadata.db <────┘
 ```
 
 ## 快速开始
 
 ### 异步上传
 
-访问 `https://<你的域名>/async-upload`，拖拽或选择文件后点击上传。文件传输完成后即显示成功，书籍在后台处理完成后自动出现在 Calibre-Web 书库中。
+在 Calibre-Web 界面使用原生的 **Upload** 按钮即可（它 POST 到 `/api/upload`，由本栈异步服务接管）。上传后自动跳转到**「我的上传」**（任务看板 `/tasks`），可实时查看「接收 → 入库 → 转 EPUB → 完成」各阶段；书籍在后台处理完成后自动出现在书库中。
+
+> 另提供 `https://<你的域名>/async-upload` 作为隐藏后备上传页（不在界面常驻导航）。上传上限 **200MB**。
 
 ### 元数据补全
 
@@ -48,6 +51,7 @@ python3 main.py --covers-only  # 仅补全缺失封面
 
 ## 文档
 
+- [项目结构（完整）](docs/project-structure.md)
 - [需求说明](docs/requirements.md)
 - [开发说明](docs/development.md)
 - [部署指南](docs/deployment.md)

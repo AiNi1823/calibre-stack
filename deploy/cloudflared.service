@@ -1,0 +1,14 @@
+[Unit]
+Description=Cloudflare Tunnel (named tunnel -> calibre-web)
+After=network-online.target calibre-web.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/cloudflared tunnel --no-autoupdate --config /etc/cloudflared/config.yml run
+Restart=always
+RestartSec=5
+OOMScoreAdjust=-500
+
+[Install]
+WantedBy=multi-user.target

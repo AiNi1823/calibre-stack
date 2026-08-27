@@ -175,7 +175,7 @@ location /tasks {
 - **既往 Doc 9 §9.2.4 的「需补 `error_page 401`」系误判**：本流程中 `401` 永不产生（子请求返回 302 而非 401），`error_page 401` 实为永不触发的死配置。故上面 `/tasks` 片段**不写** `error_page 401`，依赖已有的 server 级 `error_page 500` 即可。
 - 结论：**所有新端点已在 nginx 鉴权覆盖下**，无需额外 error_page。
 
-> 注：当前 `client_max_body_size 100M`（nginx /api/ 块）与 server.py:111 的 `200*1024*1024` 上限不一致；建议将 server.py 上限改为 100MB 与 nginx 对齐（设计层提示，实施时处理，见 Doc 9）。
+> 注：最大上传文件统一为 `200MB`（`MAX_UPLOAD_SIZE=200MB`）。nginx `client_max_body_size 200M` 与 `server.py` 的 `200*1024*1024` 上限现已对齐；任何调整必须同时改 nginx 与 `server.py`，以 `MAX_UPLOAD_SIZE` 为单一事实来源（见 deployment.md §2.3）。
 
 ## 2.4 tasks_page.html
 

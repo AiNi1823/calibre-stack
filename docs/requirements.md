@@ -34,8 +34,9 @@
 | AU-5 | 单文件上限 200MB；multipart/form-data 协议 |
 | AU-6 | systemd 守护，崩溃自动拉起 |
 
-**明确排除**：
-- 不经手 Calibre-Web 会话/CSRF（独立端点，避免耦合其内部实现）
+**明确排除 / 边界澄清**：
+- **服务自身不实现 Calibre-Web 会话/CSRF**：`async-upload` 是一个独立 HTTP 服务，不依赖 Calibre-Web 内部登录/CSRF 实现，避免耦合其内部细节。
+- **但公网入口由 nginx 统一鉴权**：生产环境 `async-upload` 仅监听 `127.0.0.1`，对外只暴露 nginx（Cloudflare Tunnel 入口）；nginx 通过 `auth_request` 复用 Calibre-Web 登录态做门禁（未登录 → 302 `/login`）。即「服务不实现 session」与「入口使用 Calibre-Web 登录态」二者同时成立，互不矛盾。
 - 不开放公网直连端口（必须走 Cloudflare Tunnel，方案已被否决）
 
 ### 3.2 元数据补全工具（metadata-tool）

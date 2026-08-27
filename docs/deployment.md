@@ -37,11 +37,11 @@ ln -sf /etc/nginx/sites-available/calibre-web /etc/nginx/sites-enabled/
 nginx -t && systemctl reload nginx
 ```
 
-配置要点：
+ 配置要点：
 - 所有 upstream 均指向 `127.0.0.1`，对外只暴露 8084（供 Cloudflare Tunnel 使用）。
 - 静态资源/封面走 `proxy_cache` 缓存。
 - `/api/upload` 转发到 async-upload（8086），关闭请求缓冲，超时 60s。
-- `client_max_body_size 100M`，如需更大文件同步调大 `server.py` 内的 200MB 检查。
+- **最大上传文件统一为 `200MB`（单一事实来源 `MAX_UPLOAD_SIZE=200MB`）**：`client_max_body_size 200M` 与 `server.py` 内 `200*1024*1024` 上限一致，避免 nginx 413 而后端收不到。任何调整必须同时改 nginx 与 `server.py`，禁止分别硬编码。
 
 ### 2.4 统一上传入口
 

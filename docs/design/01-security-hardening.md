@@ -13,20 +13,11 @@
 
 ### 实现步骤
 
-**步骤 1：生成随机 Redis 密码**
-```bash
-REDIS_PASS=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
-echo "Generated Redis password: $REDIS_PASS"
-```
-
-**步骤 2：创建 secrets.env**
+**步骤 1：创建 secrets.env**
 ```bash
 cat > /opt/calibre-stack/secrets.env << EOF
 # Calibre Stack Secrets — chmod 600, never commit
 # Created: $(date -Iseconds)
-
-# Redis
-REDIS_PASSWORD=${REDIS_PASS}
 
 # z-library (fill when credentials available)
 ZLIB_EMAIL=
@@ -37,7 +28,9 @@ chmod 600 /opt/calibre-stack/secrets.env
 chown calibreweb:calibreweb /opt/calibre-stack/secrets.env
 ```
 
-**步骤 3：验证文件权限**
+> 本栈任务队列用 SQLite（`tasks.db`），**不引入 Redis/MQ**（见 project-plan.md「队列 | SQLite 表」）。故 secrets.env 不含 Redis 密码；§1.4 仅作本机其他应用若用 Redis 的参考。
+
+**步骤 2：验证文件权限**
 ```bash
 ls -la /opt/calibre-stack/secrets.env
 # Expected: -rw------- 1 calibreweb calibreweb
@@ -188,14 +181,11 @@ redis-cli -a "${REDIS_PASSWORD}" ping
 # Expected: PONG
 ```
 
-**步骤 4：更新 Calibre-Web 的 Redis 配置**
+**步骤 4：检查 Calibre-Web 是否使用 Redis**
 ```bash
-# Calibre-Web 使用 Redis 缓存，需要更新密码
-# 检查 Calibre-Web 的 Redis 配置位置
-grep -r "redis" /opt/calibre-web/ 2>/dev/null | grep -i pass
-
-# 如果 Calibre-Web 使用环境变量，更新 systemd 单元
-# 如果使用配置文件，更新对应文件
+# 本栈 Calibre-Web 代码无 import redis（§1.4 开头已核实），通常无需此步。
+# 仅当你在本机其他应用启用 Redis 后，需同步那些应用的密码配置。
+grep -r "redis" /opt/calibre-web/ 2>/dev/null | grep -i pass || echo "Calibre-Web 未使用 Redis，跳过"
 ```
 
 **步骤 5：清理备份**
@@ -224,15 +214,9 @@ ps aux | grep cloudflared | grep -o '\-\-token [^ ]*' | head -1
 stat -c "%a" /etc/cloudflared/token 2>/dev/null
 # Expected: 600
 
-echo "=== 4. Redis ==="
-redis-cli ping 2>/dev/null
-# Expected: NOAUTH (needs password)
-redis-cli -a "$(source /opt/calibre-stack/secrets.env && echo $REDIS_PASSWORD)" ping
-# Expected: PONG
-
-echo "=== 5. Services ==="
-systemctl is-active cloudflared redis-server
-# Expected: active active
+echo "=== 4. Services ==="
+systemctl is-active cloudflared
+# Expected: active
 ```
 
 ---
@@ -245,8 +229,6 @@ systemctl is-active cloudflared redis-server
 |------|------|
 | secrets.env 创建失败 | 检查磁盘空间和权限，修复后重试 |
 | cloudflared 启动失败 | `cp /etc/systemd/system/cloudflared.service.bak /etc/systemd/system/cloudflared.service && systemctl daemon-reload && systemctl restart cloudflared` |
-| Redis 密码更新失败 | 恢复备份配置，重启 Redis |
-| Calibre-Web 连接失败 | 检查 Redis 密码是否同步更新 |
 
 ---
 
@@ -257,6 +239,5 @@ Phase 0 (本阶段)
     │
     ├── secrets.env → Phase 2 (zlibrary 凭据)
     ├── .gitignore → Phase 收尾 (git push)
-    ├── cloudflared → 无后续依赖
-    └── Redis → Phase 1 (task_store 用 SQLite，不用 Redis；仅当本机其他应用用 Redis 才执行 §1.4)
+    └── cloudflared → 无后续依赖
 ```

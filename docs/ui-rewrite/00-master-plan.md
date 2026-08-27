@@ -27,6 +27,7 @@
 - Desktop / Tablet / Mobile 均可用
 - 暗色模式完整
 - 保留**全部现有功能**（浏览/搜索/下载/在线阅读/收藏/标签/批量/上传/任务/Admin）
+- **统一视觉体系**：Calibre Stack 自建页面（/async-upload 上传页、/tasks 处理中心、元数据补全页）同样采用本 Design System（见 `docs/design/02-task-store-api.md` §2.4），与 Calibre-Web 风格一致，禁止旧 Bootstrap 风格混入
 
 视觉禁令（沿用原始 prompt）：禁止 AI SaaS 风、大渐变、玻璃拟态、超大圆角、大阴影、花哨动画、过度留白、彩色按钮堆、为视觉牺牲信息密度。
 

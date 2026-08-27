@@ -18,11 +18,11 @@
 ```python
 # /opt/calibre-stack/async-upload/format_converter.py
 import os, subprocess, shutil, logging
+from lib_lock import library_lock   # Doc 2 §2.1.1 跨进程库级锁
 log = logging.getLogger("format_converter")
 
 LIBRARY = os.environ.get("CALIBRE_DBPATH", "/opt/calibre-library/Calibre Library")
 ARCHIVE = "/opt/calibre-library/_archive"
-CALIBRE_LOCK = None   # 由 server 注入
 
 DRM_MAGICS = [b"CR!", b"\x00\x00\x00\x0c\x6a\x50\x20\x20\x0d\x0a\x87\x0a"]  # KFX/DRM 标记
 
@@ -58,7 +58,7 @@ def convert_to_epub(src_path, workdir="/tmp/calibre_conv"):
 
 def add_format(book_id, epub_path):
     """把 EPUB 加进已有书；返回是否成功"""
-    with CALIBRE_LOCK:
+    with library_lock():
         r = subprocess.run(
             ["calibredb", "add_format", "--with-library", LIBRARY,
              str(book_id), epub_path],
@@ -73,9 +73,8 @@ def archive_original(src_path, book_title):
 
 def remove_format_and_archive(book_id, fmt):
     """E1：把某书指定格式从库移除并归档原文件（用于 TXT/PDF 找到 EPUB 后的清理）"""
-    from contextlib import contextmanager
     base = os.path.dirname(LIBRARY)
-    with CALIBRE_LOCK:
+    with library_lock():
         # 取该格式文件所在路径
         r = subprocess.run(
             ["calibredb", "list", "--with-library", LIBRARY, "--fields", "path,formats",

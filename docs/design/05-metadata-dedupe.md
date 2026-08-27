@@ -105,11 +105,11 @@ def enrich(book_id, task_update=None):
 ```python
 # /opt/calibre-stack/async-upload/deduplicator.py
 import os, re, sqlite3, subprocess, logging, shutil
+from lib_lock import library_lock   # Doc 2 §2.1.1 跨进程库级锁
 log = logging.getLogger("dedupe")
 
 LIBRARY = os.environ.get("CALIBRE_DBPATH", "/opt/calibre-library/Calibre Library")
 ARCHIVE = "/opt/calibre-library/_archive"
-CALIBRE_LOCK = None
 
 # E3：格式优先级可配置，默认 EPUB 优先（Send-to-Kindle 兼容、跨设备通用）
 # 通过环境变量 PREFERRED_FORMAT 可切到 AZW3（老款 Kindle 生态更稳）
@@ -167,7 +167,7 @@ def _archive_and_remove(book_id):
     if os.path.exists(src):
         os.makedirs(ARCHIVE, exist_ok=True)
         shutil.move(src, os.path.join(ARCHIVE, os.path.basename(path)))
-    with CALIBRE_LOCK:
+    with library_lock():
         subprocess.run(["calibredb", "remove", "--with-library", LIBRARY,
                        str(book_id)], capture_output=True, timeout=60)
 

@@ -60,19 +60,16 @@ Calibre-Web 自有路由自带鉴权（`@login_required_if_no_ano`）
 /opt/calibre-stack/secrets.env    # chmod 600, 不进 git
 ZLIB_EMAIL=
 ZLIB_PASSWORD=
-REDIS_PASSWORD=<随机强密码>
 ```
+> 本栈任务队列用 SQLite（`tasks.db`），**不引入 Redis/MQ**，故 secrets.env 不含 Redis 密码。
 
 ### 3.2 cloudflared cred-file
 ```ini
-ExecStart=/usr/local/bin/cloudflared tunnel --cred-file /etc/cloudflared/tunnel.json
+ExecStart=/usr/local/bin/cloudflared tunnel --cred-file /etc/cloudflared/token
 ```
 - install.sh 自动迁移，chmod 600，不要求轮换 token
 
-### 3.3 Redis 强密码
-- 探测消费者 → 随机密码 → 同步更新
-
-### 3.4 .gitignore 加固
+### 3.3 .gitignore 加固
 追加：`secrets.env`、`.env*`、`*.db`、`reports/`
 
 ---
@@ -108,9 +105,17 @@ CREATE TABLE tasks (
     book_id INTEGER, title TEXT,
     stage TEXT,  -- uploaded/adding/converting/searching_epub/enriching/deduping/done
     status TEXT DEFAULT 'pending',
-    detail TEXT, created_at TIMESTAMP, updated_at TIMESTAMP
+    detail TEXT,
+    attempt_count INTEGER DEFAULT 0,   -- 重试次数（幂等）
+    last_error TEXT DEFAULT '',       -- 最近错误（排查用）
+    owner TEXT DEFAULT '',             -- 认领 worker 标识
+    started_at TIMESTAMP, finished_at TIMESTAMP,
+    created_at TIMESTAMP, updated_at TIMESTAMP
 );
 ```
+
+> 执行模型见 design/02-task-store-api.md §2.2.1：**常驻单 worker 轮询认领**，不再每请求 spawn daemon thread；
+> 启动 `reset_interrupted()` 把残留 `running` 重置为 `pending`（重启不丢任务）；各动作幂等可安全重试。
 
 ---
 

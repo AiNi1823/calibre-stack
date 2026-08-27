@@ -32,11 +32,11 @@
    - 按钮包含：`下载`（下拉选格式）・`收藏`・「修改标签」・「修改分类」・「删除」
 
 3. **Alpine 交互**：
-   - `x-data=" { selected: [], }` 维护被选书籍 ID 数组
-   - `'input[type="checkbox"]': { selected.indexOf($event.dataset.id) !== -1 ? selected.splice(selected.indexOf($event.dataset.id), 1) : selected.push($event.dataset.id) }` 维护选中状态
-   - `'全选'@click='selected = selected.includes(id) ? [] : [id]'`（其中 id 通过遍历 book-row 动态绑定）
-   - 批量操作栏显示：`x-show="selected.length > 0`，`x-transition` 淡入淡出
-   - 点击操作按钮后：`fetch` 调用后端 API（见后端改动说明，虽然后端不动，但前端需发送请求——但用户说后端不动，所以可能是保持原有 form submission 行为，或用户层面已约定好后端交互方式，此处仅标记前端交互写法）
+    - `x-data=" { selected: [], }` 维护被选书籍 ID 数组
+    - `'input[type="checkbox"]': { selected.indexOf($event.dataset.id) !== -1 ? selected.splice(selected.indexOf($event.dataset.id), 1) : selected.push($event.dataset.id) }` 维护选中状态
+    - `'全选'@click='selected = selected.includes(id) ? [] : [id]'`（其中 id 通过遍历 book-row 动态绑定）
+    - 批量操作栏显示：`x-show="selected.length > 0"`，`x-transition` 淡入淡出
+    - **点击操作按钮后：保持原有后端行为，通过表单提交（form submission）完成下载/收藏/标签/分类/删除等操作，不使用新的 fetch API。**——保持与原有 `editbooks.py`/`helper.py` 行为完全一致，避免在 UI 重构期间引入新的后端协议。
 
 4. **视觉设计**：
    - 批量操作栏顶部显示 ‘已选 N 本’
@@ -48,7 +48,7 @@
    - 确保复选框在移动端也能正常工作（`dark:inline-block` 仅移动端显示，desktop端可隐藏或保持）
 
 ## 2. 后端改动
-- 无。后端 `editbooks.py`、`helper.py` 等不动；前端仅改写交互，保持原有后端 API 行为不变。
+- 无。后端 `editbooks.py`、`helper.py` 等不动；前端仅改写交互，保持原有表单提交行为不变.。
 
 ## 3. 回测方法
 1. **本地构建**：同上

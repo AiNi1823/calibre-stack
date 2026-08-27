@@ -1,83 +1,104 @@
-# Calibre-Web UI 升级 — Phase 1：布局
+# Calibre-Web UI 升级 — Phase 1：Design System
 
 ## 0. 目标
-- 在 `layout.html` 中实现左侧 Sidebar（220–240px） + Header + 内容区
-- 移动端（<768px）自动折叠为 Drawer（抽屉）模式
-- Header 包含：搜索框 / 用户头像 / 主题切换 / 导航入口
-- 保持 Alpine.js 交互连贯（继承 Phase 0 的 `base.html` 行为）
-- 侧边栏与内容区采用 CSS Grid / Flexbox 栅格，在桌面端 220px，移动端自动全宽
+- 确立完整的 Design System，作为后续所有 UI 组件的唯一权威来源
+- 定义浅色/深色设计令牌（变量）、排版、间距、边界、组件样式
+- 确保三端（Desktop/Tablet/Mobile）视觉一致性
+- 所有后续阶段（P2-P11）必须复用这些标准，禁止自行发明样式
+- 实现 `class="dark"` 切换，以及响应式断点，使其贯穿全篇而非临时加入
 
 ## 1. 影响项目文件
 - **Fork 内**：
-  - `cps/templates/layout.html`（核心改写：从顶部 navbar 改为左侧 Sidebar + 内容区；移动端加 media query 控制 Sidebar/Drawer）
-  - `cps/templates/base.html`（继承 `layout.html`，保持 Alpine 根数据 `x-data`，确保主题变量 `dark` 在两模式下共享）
-  - `cps/static/css/tailwind.css` / `input.css`（可能须扩展媒体查询，见下 '实施要点'）
-  - `cps/static/js/`（若有必要，微调 Alpine 数据属性，确保 Sidebar/Drawer 状态在桌面/移动间同步）
+  - `cps/static/css/tailwind.config.js`（设计令牌：light/dark 调色板、字体、断点、radius、shadow）
+  - `cps/static/css/input.css`（Tailwind 指令 `@tailwind base; @tailwind components; @tailwind utilities`，含所有组件基础样式）
+  - `cps/templates/base.html`（引入 Alpine.js、`x-data` 根数据 `dark` / `sidebarOpen`，保持 `{% extends "layout.html" %}`）
+  - `cps/templates/layout.html`（侧边栏/页脚使用 Design System 组件类；保持与 base.html 的变量继承）
+  - `cps/static/css/tailwind.css`（编译产物，提交仓库）
 
 - **calibre-stack（暂不涉及）**：
-  - `async-upload/tasks_page.html`、`upload_page.html`（保持不变）
+  - `async-upload/tasks_page.html`、`upload_page.html`
 
 ## 2. 后端改动
-- 无。`layout.html` 与 `base.html` 仅改写 HTML structure + Tailwind 类；后端路由、数据查询完全不动。
+- 无。Design System 完全由前端模板与静态资源决定，`web.py`/`db.py`/`helper.py` 完全不动。
 
 ## 2. 实施要点
-1. **Sidebar 结构**：
-   - 宽度固定 220px（桌面） / 全宽（移动端）
-   - 包含：首页 / 书库 / 最近阅读 / 收藏 / 作者 / 分类 / 标签 / 系列 / 设置 / 退出
-   - 每个导航项用 `x-show` 控制对应内容区的显示/隐藏
-   - 移动端点击 Sidebar 图标，Sidebar 收起，内容区宽度自动扩展；再次点击或点击遮罩层，返回
 
-2. **Header 结构**：
-   - Logo / 站点名称（居中或左对齐）
-   - 搜索框：`x-on:input` 触发 `search.simple_search`（保持原有行为）
-   - 用户菜单：下拉列表，含 个人资料 / 设置 / 退出
-   - 主题切换按钮：`@click="dark = !dark"`，状态在桌面/移动间共享
+### 1. Design Token（设计令牌）
+在 `tailwind.config.js` 中预声明：
 
-3. **移动端 Drawer**：
-   - `x-show` 绑定在 `<body>` 或特定容器，`x-transition` 给出淡入淡出效果
-   - 遮罩层 `x-show` 控制点击关闭
-   - 侧边栏在移动端 `transform: translateX(-100%)` / `translateX(0)` 切换
+**Light:**
+```
+--background:#F8F8F7  --surface:#FFFFFF  --surface-secondary:#F3F3F1
+--border:#E5E5E3     --text-primary:#1F1F1F  --text-secondary:#737373  --text-muted:#A3A3A3
+--primary:#2563EB    --danger:#DC2626  --success:#16A34A
+```
 
-4. **Tailwind 媒体查询**：
-   - `@media (min-width: 768px)`：Sidebar 可见（`w-20` / `w-64` 对应 220–240px）
-   - `@media (max-width: 767px)`：Sidebar 隐藏，通过汉堡菜单按钮触发 Drawer
-   - 在 `tailwind.config.js` 或 `input.css` 中添加对应断点类
+**Dark（`class="dark"`）：**
+```
+--background:#111111  --surface:#181818  --surface-secondary:#202020
+--border:#2A2A2A     --text-primary:#E5E5E5  --text-secondary:#A3A3A3  --text-muted:#737373
+```
+约束：主色仅用于当前导航/主按钮/链接/选中/进度/focus；封面圆角 4–6px；动画 100–200ms。
 
-5. **Alpine 状态共享**：
-   - 定义 `dark`（主题）、`sidebarOpen`（Sidebar 打开/关闭状态）在 `base.html` 的 `x-data` 中
-   - 子模板 `layout.html` 继承这些变量，确保主题切换和 Sidebar 状态在任意页面一致
+### 2. 组件库（全部通过 Tailwind 类 + Alpine 状态实现）
 
-## 2. 后端改动
-- 无。所有路由 URL、`auth_request` 鉴权、Calibre-Web 原有功能完全不动。
+| 组件 | 规范 |
+|------|------|
+| **Button** | 默认/primary/outline/danger 变体；`focus-visible: outline-2 focus-visible:ring-2`；`disabled: opacity-50 cursor-not-allowed` |
+| **Input** | 文本输入框；`focus-visible` 状态有明显轮廓；`resize-none` 防止用户调整尺寸 |
+| **Badge** | 状态徽章（未读/在读/已读），尺寸 `text-xs` / `px-2` / `py-1` / `rounded-2`；颜色沿用 `gray-100` / `green-100` / `blue-100` |
+| **BookCard** | 封面 `rounded-4` / `object-cover` / `lazy-loading`；标题单行截断 `.line-clamp-1`；作者/系列小号灰色 |
+| **Table** | 交替行 `bg-white` / `bg-gray-50`；状态徽章列；操作按钮列 |
+| **Dialog** / **Drawer** / **Dropdown** | 遮罩层、Esc 关闭、`aria-label`、`focus-visible` 焦点轮廓 |
+| **BookCover** | 封面组件 `rounded-4` / `transition-transform` / `hover:scale-105` |
+
+### 3. 响应式断点
+在 `tailwind.config.js` 中：
+```js
+screens: { sm: '640px', md: '768px', lg: '1024px', xl: '1200px' }
+```
+原则：Desktop（>=1200px）左侧 Sidebar + 内容区；平板（768–1199px）Sidebar 折叠为汉堡菜单，内容区自动宽度；移动端（<768px）Sidebar 完全隐藏，顶部含菜单按钮，Drawer 全宽滑出。
+
+### 4. 主题切换
+- `<html>` 标签 `class="dark"` 控制深色模式
+- 顶部主题切换按钮：`<button @click="dark = !dark" class="btn btn-sm btn-outline" aria-label="切换护眼模式"`
+- `x-data=" { dark: false }"` 在 `base.html` 根层维护
+- 所有组件通过 `dark:` 前缀自动切换颜色（按钮背景、边框、文字、背景）
+
+### 5. 使用原则
+- **所有新增模板片段必须复用上述组件**（Button、Input、Badge、BookCard、Table、Dialog 等），不得自行编写 inline CSS/JS
+- **禁止**在任何页面自行定义颜色值、间距、圆角，必须引用 Design Token
+- **深色模式**必须在组件设计之一开始即支持，而非临时在最后阶段添加
+- **响应式断点**必须在组件库层面预先定义，而非每个页面单独写媒体查询
+
+## 3. 后端改动
+- 无。全部由前端模板与静态资源决定。
 
 ## 3. 回测方法
-1. **本地预览**：`npm run dev`（或 `npx tailwindcss -i ./cps/static/css/input.css -o ./cps/static/css/tailwind.css` 后重启）
-2. **浏览器验证**（分三端）：
-   - **Desktop（1200px+）**：Sidebar 固定 220px，内容区 `wcalc(100% - 220px)`；Header 固定；主题切换生效
-   - **Tablet（768–1199px）**：Sidebar 折叠为汉堡菜单图标，点击后 Drawer 从左侧滑出
-   - **Mobile (<768px)**：Header 仅含搜索/用户/主题，点击菜单按钮 Drawer 全宽滑出
-3. **功能验证清单**：
-   - Sidebar/Drawer 在三端均可打开/关闭
-   - 搜索框聚焦后能输入并触发搜索
-   - 主题切换按钮在三端均能切换 light/dark
-   - 无控制台 Alpine 错误（`x-show` 变量未定义等）
-   - 点击遮罩层或 Sidebar 外部区域，Sidebar/Drawer 关闭
+1. **本地构建**：`npm install && npx tailwindcss -i ./cps/static/css/input.css -o ./cps/static/css/tailwind.css`
+2. **功能验证清单**：
+   - Tailwind 已编译，`tailwind.css` 已提交仓库
+   - `base.html` 加载正常，`x-data` 中 `dark` 变量可用
+   - 所有常用组件（Button、Input、Badge、BookCard）按 Design Token 渲染
+   - `class="dark"` 切换 light/dark，CSS 变量生效
+   - 响应式布局：Desktop/Tablet/Mobile 三端布局均无折层
+   - 无控制台 Alpine 错误
 
 ## 4. 推进标准（进入 P2 的门禁）
-- `layout.html` 在 Desktop/Tablet/Mobile 三端均能正常渲染，无 JS 错误
-- Sidebar 与内容区的宽度比例符合设计（桌面 220px，移动全宽）
-- 主题切换在三端生效
-- Alpine 无控制台错误
-- `git status` 仅显示 `layout.html`、`base.html`、`tailwind.css`（及相关子文件）被修改
+- Design Token 在 `tailwind.config.js` 中已声明，`input.css` 编译无误
+- `base.html` 中 `x-data` 维护 `dark` 变量，`layout.html` 继承生效
+- 所有组件渲染符合 Design System 规范（检查圆角 4–6px、颜色变量、间距）
+- `class="dark"` 在三端均可开启/关闭，CSS 变量生效
+- 无控制台 JS 错误
 
 ## 4. 下一步门禁
-- P2（书库页面）：重皮肤 `grid.html` / `list.html`（封面、状态徽章、Grid⇄List 切换），保持 Alpine 交互连贯
+- P2（App Shell）：在通过上述 Design System 验证后，开始实现左侧 Sidebar + Header + 移动端 Drawer（`layout.html` 重写），保持 Alpine 交互连贯，所有组件复用 P1 中的 Design System。
 
 ## 备注
-- `layout.html` 与 `base.html` 的改动必须保持 `{% extends "base.html" %}` / `{% block body %}` 等 Jinja2 结构不变，仅在块内改写 HTML structure + Tailwind 类
-- 若涉及 `cps/static/js/` 的微调，建议先在 `base.html` 中写好 Alpine 数据属性，再在 `layout.html` 中使用；避免一次性大改所有 JS 文件
-- 媒体查询阈值 768px 可根据实际视觉效果微调，但原则上 Desktop 侧边栏 >= 768px，移动端 < 768px
+- 本阶段是整个 UI 升级的**基石**。后续所有阶段（P2-P11）的组件定义、样式、交互均必须复用本阶段的 Design System，不得自行发明。
+- 若后续发现 Design System 缺失某组件，必须在修改前先在本文档中补充，再波及后续阶段。
+- `rounded-4xl` 在任何上下文中一律**不使用**，封面/卡片仅使用 `rounded-4` / `rounded` / `rounded-lg`（对应 4–6px）。
+- `focus-visible` 焦点轮廓是强制要求，任何可交互元素必须有明显的焦点状态。
 
 ---
-
-> **施工文档**：影响文件/回测/推进标准如上。完成 P1 并经验证后，可进入 P2。
+> **施工文档**：影响文件/回测/推进标准如上。完成 P1 并经验证后，可进入 P2.

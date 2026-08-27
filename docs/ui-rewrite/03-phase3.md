@@ -22,10 +22,10 @@
 
 ## 2. 实施要点
 1. **结构布局**：
-   - `.detail-layout`：`grid grid-cols-1 lg:grid-cols-2 gap-6`
-   - `.detail-cover`：`lg:col-span-2`（封面占两栏），`rounded-4xl`、`.lazy-loading`、`.mb-6`
-   - `.meta-group`：`col-span-1`（或 `lg:col-span-1`），含 `.title`、`.author`、`.series`、`.progress`（进度条，若后端数据存在）
-   - `.action-btns`：`col-span-2`（或 `grid grid-cols-2`），含 `.btn`：`'阅读' / '下载' / '收藏' / '编辑' / '删除'`；每个按钮保持原有 href/action 路由
+   - `.detail-layout`：`grid grid-cols-1 gap-6`
+   - `.detail-cover`：`rounded-4`、`.lazy-loading`、`.mb-4`；桌面端与 `.meta-group` 水平排列
+   - `.meta-group`：含 `.title`、`.author`、`.series`、`.progress`（进度条，若后端数据存在）
+   - `.action-btns`：`grid grid-cols-2`，含 `.btn`：`'阅读' / '下载' / '收藏' / '编辑' / '删除'`；每个按钮保持原有 href/action 路由
 
 2. **状态徽章**（`_status-badge.html`复用）：
    - 若 `ub.ReadBook.read_status` 存在于模板上下文：徽章显示 `未读`/`在读`/`已读`，颜色沿用绿/蓝灰
@@ -52,17 +52,17 @@
 ## 3. 回测方法
 1. **本地构建**：同上
 2. **浏览器验证**：
-   - 封面大小位置：封面占据宽度 2/3，元数据占 1/3（桌面）；桌面端下封面全宽
-   - 元数据（标题/作者/系列）正常显示
+   - 详情页布局（桌面端）：封面与元数据区横向排列，封面居左，元数据（标题/作者/系列）居右，操作按钮在封面下方或同行显示
+   - 纵屏/移动端下封面全宽，元数据垂直堆叠
    - 操作按钮（阅读/下载/收藏/编辑/删除）均可点击并跳转/执行
-   - 状态徽章（若有后端数据）颜色正确
    - 返回按钮跳转首页
-   - 横屏/移动端下布局不破坏
+   - 横屏needmobile端布局不破坏
 
 ## 3. 推进标准（进入 P4 的门禁）
-- `detail.html` 在桌面端正常渲染：封面上显示，元数据区正常，操作按钮全部可用
+- `detail.html` 在桌面端正常渲染：封面与元数据并排，操作按钮全部可用
 - 封面点击跳转至阅读页/详情页正常
 - 所有操作按钮功能正常（下载/阅读/收藏/编辑/删除）
+- 封面圆角为 4–6px，无 `rounded-4xl`
 - Alpine 无错误
 
 ## 3. 下一步门禁

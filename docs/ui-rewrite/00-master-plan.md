@@ -13,7 +13,7 @@
 | 导航布局 | 改为**左侧 Sidebar**（220–240px），移动端 Drawer |
 | 技术栈 | **全量 Tailwind 重写**（非 Bootstrap 叠加） |
 | 分支/仓库 | 独立 fork（`AiNi1823/calibre-web`）+ 独立分支 `ui-tailwind`；回测前不碰生产 |
-| 后端改动 | **允许**。若某功能的操作逻辑/依赖关系有更优雅、高效、极简的实现，可大胆改后端（路由/ORM/序列化/API），不限于前端重皮肤 |
+| 后端改动 | **默认禁止**。UI Rewrite 期间禁止后端业务重构。仅在以下 4 种情形允许后端微调：① 当前 UI 无法合理获取必要数据；② 存在性能瓶颈；③ 现有接口无法支持无刷新交互；④ 修改不改变已有 API 语义，且有独立回归测试覆盖。任何后端改动须在该阶段「回测方法」中显式覆盖，并注明改动原因。 |
 | 交付物 | 本规划 + 分阶段施工文档；每阶段明确「影响文件 / 回测方法 / 推进标准」 |
 
 ---
@@ -93,9 +93,37 @@
 
 ---
 
-## 五、允许的后端改动（更优雅实现方向）
+## 四、架构方案：fork 自维护模型
 
-后端改动**允许**，以下为推荐方向（每项下标注预期影响文件，具体在阶段文档落实）：
+(保持原有内容不变)
+
+## 五、Design System 前置（P1核心）
+
+Design System 必须在 P1 阶段即刻锁定，所有后续 UI 组件必须复用这些标准，避免各页自行发明：
+
+1. **设计令牌**：
+   - Light/Dark 调色板（已在总纲 §六提供），所有颜色、间距、圆角通过 CSS 变量统一声明
+   - `border-radius: 4–6px`（封面/按卡片），`text-xs`/`text-sm`/`text-base` 等字体层级
+   - `spacing`：`px-2`/`px-4`/`py-2`/`py-4` 等间距体系
+   - `border`：`border` / `border-2` / `border-gray-200` 等边框风格
+
+2. **组件库**：
+   - `Button`：若干变体（default/primary/outline/danger），`focus-visible` 焦点轮廓
+   - `Input`：文本输入框，`focus-visible` 状态
+   - `Badge`：状态徽章（未读/在读/已读），尺寸 `text-xs` / `px-2` / `py-1` / `rounded-2`
+   - `BookCard` / `BookListItem`：封面 `rounded-4` / `object-cover` / `lazy-loading`，标题/作者/系列三行布局
+   - `Table`：交替行色 `bg-white` / `bg-gray-50`，状态徽章列，操作按钮列
+   - `Dialog` / `Drawer` / `Dropdown`：遮罩层、Esc 关闭、`aria-label`、`focus-visible` 焦点
+   - `BookCover`：封面组件，`rounded-4` / `transition-transform` / `hover:scale-105`
+
+3. **使用原则**：
+   - 所有新增模板片段必须复用上述组件；不得自行编写 inline CSS/JS
+   - 深色模式通过 `class="dark"` + CSS 变量 全局生效，组件须通过 `dark:` 前缀自动切换
+   - 响应式断点：`sm: 640px` / `md: 768px` / `lg: 1024px` / `xl: 1200px`，Sidebar 在 `md` 以上可见，`md` 以下转抽屉
+
+## 五、允许的后端改动（更严格）
+
+后端改动**默认禁止**。UI Rewrite 期间禁止后端业务重构。仅在以下 4 种情形允许后端微调：① 当前 UI 无法合理获取必要数据；② 存在性能瓶颈；③ 现有接口无法支持无刷新交互；④ 修改不改变已有 API 语义，且有独立回归测试覆盖。任何后端改动须在该阶段「回测方法」中显式覆盖，并注明改动原因。
 
 1. **继续阅读首页区块**
    - 新增 `web.currently_reading()` 或在 `index()` 注入 `currently_reading` 列表（按 `ub.BookProgress` 最近位置 / `ReadBook` 最近访问排序）
@@ -107,25 +135,15 @@
    - 影响：`cps/web.py`、`cps/db.py`
    - 分页已去除（全页加载）；若未来书库过大，可加虚拟滚动 / 分页 API（独立评估，不在本期强制）
 
-3. **批量操作 JSON API**
-   - 现有批量编辑走 form post 整页刷新。新增 `POST /api/books/batch`（操作：标签/分类/收藏/删除/状态）供 Alpine 调用，体验更顺
-   - 影响：`cps/web.py`（新增路由）、`cps/editbooks.py` / `cps/helper.py`（复用现有编辑函数）
-   - 前端 BatchActionBar 用 Alpine `fetch` 调用，无整页刷新
-
-4. **暗色模式用户偏好**
-   - 扩展用户偏好持久化 `ui_theme`（light/dark），替代仅 `current_theme`（0/1 blur）
-   - 影响：`cps/web.py`（context processor 注入 `ui_theme`）、`cps/db.py`（`ub.User` 加列或复用 `ui_theme` 设置）、前端 theme toggle 写回 API
-   - 保持 `current_theme` 兼容（blur 主题可保留为可选项）
-
-5. **阅读状态即时切换**
+3. **阅读状态即时切换**
    - 现有 `helper.edit_book_read_status` 已支持；前端用 Alpine 直接 `fetch` 调用，无整页刷新
    - 影响：仅前端交互（复用现有 API），后端可不改
 
-6. **上传 / 任务**
+4. **上传 / 任务**
    - async-upload 保持独立服务；`/tasks` 看板并入侧边栏（已做）。后端无需改，仅前端重皮肤
    - 若需更紧耦合（如任务进度实时推送），可加 SSE/轮询 API，独立评估
 
-> 以上改动**不破坏**既有路由契约（`/api/upload`、OPDS、Kindle 发送、在线阅读等保持原样）。任何后端改动须在该阶段「回测方法」中显式覆盖。
+> 以上改动**不破坏**既有路由契约（`/api/upload`、OPDS、Kindle 发送、在线阅读等保持原样）。任何后端改动须在该阶段「回测方法」中显式覆盖，并注明改动原因。
 
 ---
 
@@ -150,19 +168,19 @@ Dark（`class="dark"`）：
 
 | Phase | 标题 | 一句话 |
 |-------|------|--------|
-| P0 | 脚手架 | fork+分支；Tailwind 构建链；设计令牌；删 Bootstrap/Glyphicons 引用；`base.html` 壳 |
-| P1 | 布局 | 左侧 Sidebar + Header + 移动 Drawer；替换 `layout.html` |
-| P2 | 设计系统组件 | 可复用 Tailwind+Alpine 片段（button/badge/modal/drawer/table/progress/bookcard/booklist） |
-| P3 | 书库 Grid/List | 重皮肤 `grid.html`/`list.html`；封面/状态徽章；Grid⇄List |
-| P4 | 书籍详情 | 重皮肤 `detail.html`；操作优先级 |
-| P5 | 首页 | `index.html`：继续阅读/最近添加/最近阅读/收藏/发现（含后端查询） |
-| P6 | 搜索+筛选 | 全局搜索 + Ctrl+K；筛选 Popover |
-| P7 | 导航页 | author/list(分类)/shelf(收藏)/系列/标签 重皮肤 |
-| P8 | 登录/注册 | `login.html`/`register.html` 重皮肤 |
-| P9 | 管理后台 | admin/book_table/user_table/config_edit 重皮肤（功能不变） |
-| P10 | 自研页 | `/tasks` `/async-upload` HTML 对齐新设计 |
-| P11 | 暗色+响应式+无障碍 | `class="dark"` 切换；断点；aria/focus/ESC |
-| P12 | 回归+切换 | 8085 并行回测；全绿后切 8084；合 fork master 打 tag |
+| P0 | 基线与隔离 | fork；生产快照；8085 并行；Playwright 基础环境；现有功能基线 |
+| P1 | Frontend Foundation | Tailwind；Design Tokens；Light/Dark；Typography；spacing；基础组件 |
+| P2 | App Shell | Sidebar；Header；Search；Drawer；Responsive |
+| P3 | Library | Grid；List；BookCard；Selection；Performance |
+| P4 | Book Detail | Cover；Metadata；Actions；Reading status |
+| P5 | Home | Continue Reading；Recent；Favorites |
+| P6 | Search / Filter | Search；Ctrl+K；Filter |
+| P7 | Library Navigation | Authors；Categories；Tags；Series；Shelves |
+| P8 | Batch Operations | UI only（后续再考虑 API 化） |
+| P9 | Auth + Admin | Login；Register；Admin |
+| P10 | Custom Pages | tasks / upload |
+| P11 | Accessibility / Performance Audit | WCAG；Lighthouse；Playwright；large library benchmark |
+| P12 | Production Cutover | full regression；nginx switch；rollback |
 
 ---
 

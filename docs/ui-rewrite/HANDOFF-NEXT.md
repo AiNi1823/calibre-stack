@@ -40,8 +40,9 @@
    - **未实现**：我的收藏区块（需书架数据）、`_reading-item`/`_book-card` include 组件拆分。
 2. **P6（搜索 + 筛选）✅ 已完成**：首页/`search.html` 高密度结果列表 + 无结果态 + `Ctrl+K`/`/` 唤起搜索（`ui.js` `focusSearch()` + `layout.html` body keydown）。后端未改。
    - **未做**：筛选器 popover/bottom-sheet 重构（保留既有 `search_form.html` 高级搜索页）。
-3. **P7（书库导航）**：见 `docs/ui-rewrite/07-phase7.md`。作者 / 分类 / 标签 / 系列 / 书架。每阶段完成后更新 doc + HANDOFF，commit + push。
-4. 之后 P7→P12 按 `docs/ui-rewrite/0X-phaseX.md` 顺序，每阶段 commit+push。
+3. **P7（书库导航）✅ 已完成**：导航列表共用 `list.html` 重皮肤（`.cw-nav-item` 名称+数量徽章，保留 `filter_list.js` 全部钩子）+ `author.html`/`shelf.html` 书卡网格改 `cw-book-card` + `cw-author-bio`。后端未改。
+4. **P8（Batch）**：见 `docs/ui-rewrite/08-phase8.md`。书库/导航页批量选择 + 批量操作栏。每阶段完成后更新 doc + HANDOFF，commit + push。
+5. 之后 P8→P12 按 `docs/ui-rewrite/0X-phaseX.md` 顺序，每阶段 commit+push。
 
 ## 5. 环境备忘
 - 构建：`cd /opt/calibre-stack/calibre-web && npm install && npm run build`（产物提交，VPS 运行期无需 Node；node_modules 已 gitignore）

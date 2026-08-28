@@ -250,6 +250,27 @@ html.dark {
   .cw-result-item__summary { @apply line-clamp-2 text-sm text-textMuted; }
   .cw-book-series { @apply text-sm text-textMuted; }
 
+  /* ============ P7: Library navigation lists ============ */
+  .cw-nav-grid { @apply flex gap-3 p-0; }
+  .cw-nav-col { @apply flex min-w-0 flex-1 flex-col gap-1 p-0; }
+  .cw-nav-item {
+    @apply flex items-center justify-between gap-2 rounded-4 border border-surfaceSecondary bg-surface
+           px-3 py-2 transition-colors duration-100;
+  }
+  .cw-nav-item:hover { @apply bg-surfaceSecondary; }
+  .cw-nav-item__link {
+    @apply min-w-0 flex-1 truncate text-sm text-textPrimary;
+  }
+  .cw-nav-item__name { @apply truncate; }
+  .cw-nav-item__count {
+    @apply inline-flex shrink-0 items-center justify-center rounded-full bg-primary/10
+           px-2 py-0.5 text-xs font-medium text-primary;
+  }
+  .cw-author-bio {
+    @apply mb-4 flex flex-col gap-2 rounded-4 border border-surfaceSecondary bg-surface p-4 text-sm text-textSecondary;
+  }
+  .cw-author-bio .author-photo { @apply mr-3 h-24 w-20 rounded-4 object-cover; }
+
   /* ============ P1: Dropdown ============ */
   .cw-dropdown { @apply relative inline-block; }
   .cw-dropdown__menu {

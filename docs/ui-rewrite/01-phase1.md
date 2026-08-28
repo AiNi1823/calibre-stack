@@ -9,19 +9,20 @@
 
 ## 1. 影响项目文件
 - **Fork 内**：
-  - `cps/static/css/tailwind.config.js`（设计令牌：light/dark 调色板、字体、断点、radius、shadow）
-  - `cps/static/css/input.css`（Tailwind 指令 `@tailwind base; @tailwind components; @tailwind utilities`，含所有组件基础样式）
-  - `cps/templates/base.html`（引入 Alpine.js、`x-data` 根数据 `dark` / `sidebarOpen`，保持 `{% extends "layout.html" %}`）
-  - `cps/templates/layout.html`（侧边栏/页脚使用 Design System 组件类；保持与 base.html 的变量继承）
+  - `calibre-web/src/input.css`（Tailwind 指令 `@tailwind base; @tailwind components; @tailwind utilities` + 全部设计令牌 + 组件基础样式）
+  - `calibre-web/tailwind.config.js`（设计令牌：light/dark 调色板、字体、断点、radius、shadow；`darkMode:'class'`）
+  - `cps/templates/layout.html`（模型基线：已接入 tailwind.css / Alpine / Lucide / 主题机制，见 P0 报告）
   - `cps/static/css/tailwind.css`（编译产物，提交仓库）
-
+  - `cps/static/js/theme.js` / `ui.js`（暗色持久化 + Alpine `$store.ui` 主题/抽屉状态）
 - **calibre-stack（暂不涉及）**：
   - `async-upload/tasks_page.html`、`upload_page.html`
+
+> 说明：vendored 树的根模板是 `cps/templates/layout.html`（本 fork 0.6.27 无 `base.html`），P2 将以其为基础构建 App Shell。
 
 ## 2. 后端改动
 - 无。Design System 完全由前端模板与静态资源决定，`web.py`/`db.py`/`helper.py` 完全不动。
 
-## 2. 实施要点
+## 3. 实施要点
 
 ### 1. Design Token（设计令牌）
 在 `tailwind.config.js` 中预声明：
@@ -44,13 +45,16 @@
 
 | 组件 | 规范 |
 |------|------|
-| **Button** | 默认/primary/outline/danger 变体；`focus-visible: outline-2 focus-visible:ring-2`；`disabled: opacity-50 cursor-not-allowed` |
-| **Input** | 文本输入框；`focus-visible` 状态有明显轮廓；`resize-none` 防止用户调整尺寸 |
-| **Badge** | 状态徽章（未读/在读/已读），尺寸 `text-xs` / `px-2` / `py-1` / `rounded-2`；颜色沿用 `gray-100` / `green-100` / `blue-100` |
-| **BookCard** | 封面 `rounded-4` / `object-cover` / `lazy-loading`；标题单行截断 `.line-clamp-1`；作者/系列小号灰色 |
-| **Table** | 交替行 `bg-white` / `bg-gray-50`；状态徽章列；操作按钮列 |
-| **Dialog** / **Drawer** / **Dropdown** | 遮罩层、Esc 关闭、`aria-label`、`focus-visible` 焦点轮廓 |
-| **BookCover** | 封面组件 `rounded-4` / `transition-transform` / `hover:scale-105` |
+| **Button** | 默认/primary/outline/danger/ghost 变体 + sm/icon；`focus-visible` 明显轮廓；`disabled: opacity-50 cursor-not-allowed` |
+| **Input** | 文本输入框；`focus-visible` 明显轮廓；配合 `.cw-search` 前置图标 |
+| **Badge** | 状态徽章 neutral/primary/success/danger，`text-xs` |
+| **BookCard / BookCover** | 封面 `rounded-4` + `aspect-2/3` + `object-cover` + hover `scale-105`；标题 `line-clamp-1`；作者/系列 `.cw-meta` |
+| **Table** | 交替行 `nth-child(even)` 底色；状态徽章列；操作按钮列 |
+| **Dialog / Drawer / Dropdown** | 遮罩层 `.cw-overlay`、Esc 关闭、`aria-label`、`focus-visible` 焦点；Drawer `.translate-x-full` 滑出 |
+| **Toast** | 轻提示 `.cw-toast` / `.cw-toast--success` |
+| **Tabs / Pagination** | `.cw-tabs`+`.cw-tab--active`；`.cw-pagination__btn--active` |
+| **Layout 原语（供 P2）** | `.cw-app/.cw-sidebar/.cw-main/.cw-header/.cw-page-header` |
+| **状态容器** | `.cw-state` 通用 Empty/Loading/Error 容器 |
 
 ### 3. 响应式断点
 在 `tailwind.config.js` 中：
@@ -71,28 +75,25 @@ screens: { sm: '640px', md: '768px', lg: '1024px', xl: '1200px' }
 - **深色模式**必须在组件设计之一开始即支持，而非临时在最后阶段添加
 - **响应式断点**必须在组件库层面预先定义，而非每个页面单独写媒体查询
 
-## 3. 后端改动
-- 无。全部由前端模板与静态资源决定。
-
-## 3. 回测方法
-1. **本地构建**：`npm install && npx tailwindcss -i ./cps/static/css/input.css -o ./cps/static/css/tailwind.css`
-2. **功能验证清单**：
+## 4. 回测方法
+1. **本地构建**：`cd calibre-web && npm install && npm run build`（产出 `cps/static/css/tailwind.css`）
+2. **渲染冒烟**：Jinja 全量 render `cps/templates/layout.html` 无报错；确认 tailwind.css / Alpine / Lucide / theme 均输出
+3. **功能验证清单**：
    - Tailwind 已编译，`tailwind.css` 已提交仓库
-   - `base.html` 加载正常，`x-data` 中 `dark` 变量可用
-   - 所有常用组件（Button、Input、Badge、BookCard）按 Design Token 渲染
+   - `layout.html` 加载正常，`$store.ui` 中 `dark` 变量可用
+   - 所有常用组件（Button、Input、Badge、BookCard、Table…）按 Design Token 渲染（round-4/6、token 色、dark 变量）
    - `class="dark"` 切换 light/dark，CSS 变量生效
-   - 响应式布局：Desktop/Tablet/Mobile 三端布局均无折层
+   - 响应式布局：Desktop/Tablet/Mobile 三端布局均无折层（断点 sm 640 / md 768 / lg 1024 / xl 1200）
    - 无控制台 Alpine 错误
 
-## 4. 推进标准（进入 P2 的门禁）
-- Design Token 在 `tailwind.config.js` 中已声明，`input.css` 编译无误
-- `base.html` 中 `x-data` 维护 `dark` 变量，`layout.html` 继承生效
-- 所有组件渲染符合 Design System 规范（检查圆角 4–6px、颜色变量、间距）
+## 5. 推进标准（进入 P2 的门禁）
+- Design Token 在 `tailwind.config.js` + `src/input.css` 中已声明，`tailwind.css` 编译无误
+- `layout.html` 通过 `$store.ui` 维护 `dark` 变量（P0 已就绪），组件继承生效
+- 所有组件渲染符合 Design System 规范（圆角 4–6px、颜色变量、间距）
 - `class="dark"` 在三端均可开启/关闭，CSS 变量生效
 - 无控制台 JS 错误
 
-## 4. 下一步门禁
-- P2（App Shell）：在通过上述 Design System 验证后，开始实现左侧 Sidebar + Header + 移动端 Drawer（`layout.html` 重写），保持 Alpine 交互连贯，所有组件复用 P1 中的 Design System。
+> **下一步（P2 App Shell）**：在通过上述 Design System 验证后，开始实现左侧 Sidebar + Header + 移动端 Drawer（`layout.html` 重写），保持 Alpine 交互连贯，所有组件复用 P1 中的 Design System。
 
 ## 备注
 - 本阶段是整个 UI 升级的**基石**。后续所有阶段（P2-P11）的组件定义、样式、交互均必须复用本阶段的 Design System，不得自行发明。

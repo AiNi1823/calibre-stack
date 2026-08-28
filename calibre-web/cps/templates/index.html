@@ -55,6 +55,54 @@
   </div>
 </div>
 {% endif %}
+{% if page == 'newest' %}
+<div class="cw-home">
+    {% if currently_reading|length > 0 %}
+    <section class="cw-home__section">
+        <h2 class="cw-section-title">{{_('Continue Reading')}}</h2>
+        <div class="cw-home__row">
+            {% for item in currently_reading %}
+            <article class="cw-home__reading">
+                {% if item.format %}
+                <a class="cw-book-cover block" href="{{ url_for('web.read_book', book_id=item.book.id, book_format=item.format) }}" target="_blank">
+                {% else %}
+                <a class="cw-book-cover block" href="{{ url_for('web.show_book', book_id=item.book.id) }}">
+                {% endif %}
+                    <span class="block h-full w-full" title="{{ item.book.title }}">{{ image.book_cover(item.book) }}</span>
+                </a>
+                <div class="cw-home__reading-meta">
+                    {% if item.format %}
+                    <a href="{{ url_for('web.read_book', book_id=item.book.id, book_format=item.format) }}" target="_blank"><p class="cw-book-title">{{item.book.title|shortentitle}}</p></a>
+                    {% else %}
+                    <a href="{{ url_for('web.show_book', book_id=item.book.id) }}"><p class="cw-book-title">{{item.book.title|shortentitle}}</p></a>
+                    {% endif %}
+                    <span class="cw-status-badge cw-status-badge--reading">{{_('Reading')}}</span>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+    {% if recently_read|length > 0 %}
+    <section class="cw-home__section">
+        <h2 class="cw-section-title">{{_('Recently Read')}}</h2>
+        <div class="cw-home__row">
+            {% for item in recently_read %}
+            <article class="cw-home__reading">
+                <a class="cw-book-cover block" href="{{ url_for('web.show_book', book_id=item.book.id) }}" {% if simple==false %}data-toggle="modal" data-target="#bookDetailsModal" data-remote="false"{% endif %}>
+                    <span class="block h-full w-full" title="{{ item.book.title }}">{{ image.book_cover(item.book) }}</span>
+                </a>
+                <div class="cw-home__reading-meta">
+                    <a href="{{ url_for('web.show_book', book_id=item.book.id) }}"><p class="cw-book-title">{{item.book.title|shortentitle}}</p></a>
+                    <span class="cw-book-author">{% for author in item.book.authors %}{{author.name.replace('|',',')|shortentitle(18)}}{% if not loop.last %}, {% endif %}{% endfor %}</span>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endif %}
 <div class="discover load-more">
   <h2 class="{{title}}">{{title}}</h2>
    {% if page != 'discover' %}
@@ -78,6 +126,9 @@
     {% endif %}
     </div>
    {% endif %}
+  {% if page == 'newest' %}
+  <h2 class="cw-section-title mb-2">{{_('Recently Added')}}</h2>
+  {% endif %}
   {% if entries[0] %}
   <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
     {% for entry in entries %}

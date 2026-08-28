@@ -35,11 +35,12 @@
   - 结果（P4）：`detail.html` render len=17805，`cw-status-badge`/`#have_read_cb`/`#archived_cb`/`#btnGroupDrop1`/`#readbtn`/`#edit_book`/`#add-to-shelf`/`template-shelf-add` 全 OK（`id="Download"` 仅单格式出现、`details.js` 因 url_for 桩为 `#` 属预期假阴性）。
 
 ## 4. 下一步（新会话必做）
-1. **P5（Home）**：重设计首页 `index.html`（继续阅读 / 最近添加 / 最近阅读 / 我的收藏 / 发现）。见 `docs/ui-rewrite/05-phase5.md`。
-   - **注**：`05-phase5.md` 的「继续阅读」给了两种方案：① 改 `web.py` 加 `currently_reading_books()`（**与全局约束"后端 web.py/db.py/helper.py 不改"冲突**）；② 零后端改动，用模板层从已有数据抽取。**需先与用户确认选哪种**再动工；本会话未定。
-   - P3 已给 `index.html` 书卡铺好了 `cw-book-card` 皮肤；P5 是对 `index.html` 的**区块结构**重组（保留书卡组件复用）。
-2. 完成后 `git add -A && git commit && git push origin rewrite`，并更新该阶段 doc 影响文件/回测/实现项 + 本 HANDOFF。
-3. 之后 P6→P12 按 `docs/ui-rewrite/0X-phaseX.md` 顺序，每阶段 commit+push。
+1. **P5（Home）✅ 已完成**：首页 `index.html` 区块重组（继续阅读 / 最近阅读 / 最近添加）。
+   - 用户已在会话中**批准一次极简后端改动**：`web.py` 新增 `get_home_reading()`（join `ub.ReadBook`），仅在首页 `page == 'newest'` 注入 `currently_reading`/`recently_read`。此批准仅限 P5 本次。
+   - **未实现**：我的收藏区块（需书架数据）、`_reading-item`/`_book-card` include 组件拆分。
+2. **P6（搜索 + 筛选）**：见 `docs/ui-rewrite/06-phase6.md`。全局搜索框 + Ctrl+K 唤起 + 筛选条件。注意 P5 后端变更约束：P6 起除非再次获准，否则不改 `web.py`。
+3. 完成后 `git add -A && git commit && git push origin rewrite`，并更新该阶段 doc 影响文件/回测/实现项 + 本 HANDOFF。
+4. 之后 P6→P12 按 `docs/ui-rewrite/0X-phaseX.md` 顺序，每阶段 commit+push。
 
 ## 5. 环境备忘
 - 构建：`cd /opt/calibre-stack/calibre-web && npm install && npm run build`（产物提交，VPS 运行期无需 Node；node_modules 已 gitignore）

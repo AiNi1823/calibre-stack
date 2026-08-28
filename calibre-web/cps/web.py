@@ -374,6 +374,27 @@ def get_sort_function(sort_param, data):
     return order, sort_param
 
 
+def get_home_reading(limit=5):
+    """Home reading blocks: books the user is currently reading (in-progress first)
+    and most recently read, both ordered by most recent activity."""
+    user_id = int(current_user.id)
+    base = (calibre_db.session.query(db.Books, ub.ReadBook.read_status, ub.ReadBook.last_modified)
+            .join(ub.ReadBook, db.Books.id == ub.ReadBook.book_id)
+            .filter(ub.ReadBook.user_id == user_id)
+            .filter(ub.ReadBook.read_status != ub.ReadBook.STATUS_UNREAD)
+            .filter(calibre_db.common_filters())
+            .order_by(ub.ReadBook.last_modified.desc()))
+    rows = base.limit(limit).all()
+    recently_read, currently_reading = [], []
+    for book, status, last in rows:
+        fmt = book.data[0].format.lower() if book.data else None
+        item = {"book": book, "status": status, "last": last, "format": fmt}
+        if status == ub.ReadBook.STATUS_IN_PROGRESS:
+            currently_reading.append(item)
+        recently_read.append(item)
+    return currently_reading, recently_read
+
+
 def render_books_list(data, sort_param, book_id, page):
     order = get_sort_function(sort_param, data)
     if data == "rated":
@@ -419,6 +440,11 @@ def render_books_list(data, sort_param, book_id, page):
                                                                 db.books_series_link,
                                                                 db.Books.id == db.books_series_link.c.book,
                                                                 db.Series)
+        if website == "newest" and not current_user.is_anonymous:
+            currently_reading, recently_read = get_home_reading()
+            return render_title_template('index.html', random=random, entries=entries, pagination=pagination,
+                                         title=_("Books"), page=website, order=order[1],
+                                         currently_reading=currently_reading, recently_read=recently_read)
         return render_title_template('index.html', random=random, entries=entries, pagination=pagination,
                                      title=_("Books"), page=website, order=order[1])
 

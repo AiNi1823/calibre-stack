@@ -1,71 +1,57 @@
-# Calibre-Web UI 升级 — Phase 8：搜索 + 筛选
+# Calibre-Web UI 升级 — Phase 8：批量操作（Batch Operations）
+
+> 阶段定位：本阶段对应总体规划 `00-master-plan.md` §七 的 **P8（Batch Operations，UI only）**。
 
 ## 0. 目标
-- 在 Header 添加 **Ctrl+K** 唤起全局搜索的快捷键
-- 搜索结果页面支持：书名、作者、ISBN、标签、系列、出版社、出版社
-- 筛选器采用 **Dropdown / Popover** 形式，Desktop 端用顶部 Filter Bar，移动端用 Bottom Sheet / Drawer
-- 搜索结果页面保持高信息密度，不堆砌无效卡片
+- 优化书库页面的批量选择体验
+- 优化后的批量操作栏：出现更快、交互更流畅、视觉更清晰
+- 保持与原有功能完全兼容：下载、收藏、修改标签/分类、删除
+- 在网格视图和列表视图中均可用；以订阅的 P3（Library）网格/列表为基础
+- 批量操作保持**表单提交**，不引入新的 fetch API（UI only，后续再评估 API 化）
 
 ## 1. 影响项目文件
 - **Fork 内**：
-  - `cps/templates/search.html`（重写：搜索框、结果页布局、无结果提示）
-  - `cps/templates/search_form.html`（新增：紧凑的搜索输入框组件）
-  - `cps/templates/include/_search-filter.html`（新增：筛选器组合框）
-  - `cps/templates/include/_search-skeleton.html`（新增：占位加载动画）
-  - `cps/static/css/tailwind.css` / `input.css`（新增搜索相关样式：`.search-input`、`.result-item`、`.no-result`）
-  - `cps/static/js/`（Alpine.js 绑定 Ctrl+K、搜索交互）
+  - `cps/templates/include/_batch-action-bar.html`（重写：基于 Alpine，不依赖原 jQuery）
+  - `cps/templates/grid.html`（在书卡行尾添加复选框 `data-id`）
+  - `cps/templates/list.html`（在每行尾添加复选框 `data-id`）
+  - `cps/static/css/tailwind.config.js` / `input.css`（新增 `.batch-action-bar`、`.batch-checkbox` 等样式）
+  - `cps/templates/include/_status-badge.html`（复用 P1）
 
-- **calibre-stack（暂不涉及）**：
+- **calibre-stack（暂不涉及，P10 处理）**：
   - `async-upload/tasks_page.html`、`upload_page.html`
 
 ## 2. 后端改动
-- 无。搜索 API `simple_search`、`advanced_search` 完全不动；仅前端展示层改写。
+- 无。批量操作的后端路由（`editbooks.py`、`helper.py`）完全不动；仅前端交互改写。
 
-## 2. 实施要点
-1. **Header 搜索框**：
-   - `Ctrl+K` 唤起焦点（Alpine `@keydown.ctrl.k`）
-   - 输入实时筛选 `cps/web.py` 的 `search_results`，无需刷新页
-   - `placeholder`：「搜索书名、作者、ISBN、标签...」
+## 3. 实施要点
+1. **复选框**：每本书行末尾添加 `<input type="checkbox" data-id="{{entry.id}}" class="batch-checkbox">`；头部加「全选/全不选」按钮
+2. **批量操作栏**（`_batch-action-bar.html`）：初始 `hidden`；勾选后显示并高亮已选数量；点击遮罩/取消收起；按钮含 下载（选格式）・收藏・改标签・改分类・删除
+3. **Alpine 交互**：
+   - `x-data="{ selected: [] }"` 维护选中 ID 数组
+   - `x-show="selected.length > 0"` + `x-transition` 显示/隐藏
+   - **点击操作按钮保持原有后端行为，通过表单提交完成（不使用新的 fetch API）**，避免在 UI 重构期间引入新协议
+4. **视觉**：栏顶部显示「已选 N 本」；遮罩 `bg-black/20`；按钮与常规一致，hover 有轻微变化
+5. **移动端**：复选框在移动端亦可用
 
-2. **搜索结果页**：
-   - 结果按相关性排序，展示：封面、标题、作者、简介片段
-   - `no-result` 状态：当无匹配时显示「没有找到相关书籍」「尝试调整筛选条件」
-   - 每行：`.result-item`（封面 `.cover`、标题 `.title`、作者 `.author`、简介 `.summary`）
-
-3. **筛选器**：
-   - Desktop：顶部 `.filter-bar`（筛选：作者、分类、标签、语言、格式、阅读状态）
-   - Mobile：`menu` 触发 `.bottom-sheet`（筛选面板）
-   - 筛选条件通过 `query` 参数拼接传递给后端（如 `?author=xxx&tag=xxx`）
-
-4. **Alpine 交互**：
-   - `x-show` 控制搜索结果的显隐
-   - `x-on:input` 实时筛选
-   - `Esc` 键关闭搜索框
-
-## 2. 后端改动
-- 无。搜索逻辑完全由前端驱动，后端仅提供 `search_results` 数据接口（已存在，不动）。
-
-## 3. 回测方法
+## 4. 回测方法
 1. **本地构建**：同上
 2. **浏览器验证**：
-   - `Ctrl+K` 唤起焦点并定位到输入框
-   - 输入关键字（如「西游」），结果列表即时出现，匹配书名/作者/ISBN/标签
-   - `Esc` 键关闭搜索框，焦点返回原位置
-   - 点击结果项跳转至书籍详情页
-   - 筛选器Desktop/移动端均可正常使用，筛选后结果正确
+   - grid/list 进入批量选择：勾选/全选，复选框出现，已选数量显示
+   - 取消勾选 / 点击遮罩 / 取消：栏消失，数量清零
+   - 点击操作按钮（下载/收藏/标签/分类/删除）：后端正常响应（保持原表单行为）
+   - 多次「全选/全不选」循环测试，状态正确
 
-## 3. 推进标准（进入 P9 的门禁）
-- Ctrl+K 正常唤起并聚焦输入框
-- 搜索结果匹配书名/作者/ISBN/标签
-- 筛选器Desktop/移动端均可使用，筛选后结果正确
-- 无控制台 JS 错误
+## 5. 推进标准（进入 P9 的门禁）
+- 批量勾选在 grid 与 list 均可用
+- 「全选/全不选」正常；栏出现/消失动画流畅
+- 点击操作按钮后，后端正常响应（保持原有行为）
 
-## 3. 下一步门禁
-- P9（登录/注册页重皮肤）
+## 6. 下一步门禁
+- **P9（Auth + Admin）**：后台表格同样复用本阶段批量选择逻辑。
 
-## 3. 备注
-- 搜索结果中，对 `isbn`、 `出版社`、 `系列` 的匹配优先级低于书名/作者，避免误匹配。
-- 移动端筛选器高度有限，仅保留「分类」和「语言」两个最常用条件，其他条件在 Desktop 端展开。
+## 7. 备注
+- `_batch-action-bar.html` 尽量复用 P1 的 `_status-badge` 等组件格式。
+- 若后续后端新增批量操作 API，仅需前端 `fetch` 相应参数，无需大改结构（本期不落地）。
 
 ---
 

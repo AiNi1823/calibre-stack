@@ -1,77 +1,49 @@
-# Calibre-Web UI 升级 — Phase 10：管理后台
+# Calibre-Web UI 升级 — Phase 10：自研页（Custom Pages：/tasks 与 /async-upload）
+
+> 阶段定位：本阶段对应总体规划 `00-master-plan.md` §七 的 **P10（Custom Pages）**。
+> 对 Calibre Stack 自研页 `/tasks`（处理中心）与 `/async-upload`（统一上传页）应用同一 Design System 重皮肤，消除旧 Bootstrap 风格混入（总纲 §一目标）。
 
 ## 0. 目标
-- 重皮肤 `admin.html`、`book_table.html`、`user_table.html`、`config_edit.html`
-- 保持全部功能不变：图书管理（增删改查）、用户管理、系统配置、日志查看
-- 视觉风格与全站统一：深色模式、圆角 4–6px、统一的间距与间距、统一的操作按钮
-- 表格 `book_table` 增加「状态」与「操作」列，Alpine 实现行高亮与批量操作
+- 将 `async-upload`（端口 8086）提供的 `/tasks` 与 `/async-upload` 页面视觉统一到全站 Design System
+- 复用全站组件（Button / Badge / Table / Dialog / Drawer / 主题切换），禁止旧 Bootstrap 风格
+- 与前端的任务/上传信息交互（进度、状态、日志）保持一致，不破坏现有协议
+- 与 Calibre-Web fork（`ui-tailwind`）在视觉与交互上无割裂
 
 ## 1. 影响项目文件
-- **Fork 内**：
-  - `cps/templates/admin.html`（重写：侧边栏+内容区布局，保持左侧 Sidebar + 主题切换）
-  - `cps/templates/book_table.html`（重写：表格结构、状态徽章、操作按钮、批量勾选）
-  - `cps/templates/user_table.html`（重写：用户列表、状态、权限、操作）
-  - `cps/templates/config_edit.html`（重写：配置项美化、开关开关）
-  - `cps/static/css/tailwind.css` / `input.css`（新增表格相关样式：`.data-table`、`.action-btn`、`.status-badge` 等）
-  - `cps/templates/include/_operation-btn.html`（新增：操作按钮组：编辑/删除/查看）
-  - `cps/templates/include/_status-badge.html`（复用，见 Phase 3）
-
-- **calibre-stack（暂不涉及）**：
-  - `async-upload/tasks_page.html`、`upload_page.html`
+- **calibre-stack 内**：
+  - `async-upload/tasks_page.html`（重皮肤：任务列表、状态徽章、进度条、日志）
+  - `async-upload/upload_page.html`（重皮肤：统一上传页，含 `MAX_UPLOAD_SIZE=200MB` 提示）
+  - `async-upload/static/css/*`（引入 Tailwind 产物或同步 Design Token）
+- **Fork 内**（仅共享视觉，不改服务）：
+  - 依赖 `cps/static/css/tailwind.css` 构建产物或独立构建的 `calibre-stack` 版本
 
 ## 2. 后端改动
-- 无。`web.py`、`db.py` 完全不动；`book_table` 的查询数据 (`entries`、`entries[0]` 等) 完全不动；仅前端展示重写。
+- 无。`async-upload` 服务的路由、任务协议、`/api/upload`、SSE/轮询接口完全不动；仅前端模板与静态样式重皮肤。
 
-## 2. 实施要点
-1. **书籍表格 `book_table.html`**：
-   - `.data-table`：`w-full` `min-w` `rounded-2xl` `overflow-hidden`，交替行行颜色 `bg-white` `/ `bg-gray-50`
-   - `.header`：`.data-header`（`.data-header .row`）`.data-header .row .col`（`.data-header .row .col .col-span-1` `.data-header .row .col .col-span-2`）
-   - `.status-badge`：状态徽章（未读/在读/已读），右上角 `.row .row .row .data-actions .row .data-actions .row .data-actions .row .data-actions`（编辑/删除/查看）
-   - `.data-actions .row .data-actions .row .data-actions`（操作按钮：编辑/删除/查看）
-   - `.data-footer`：分页、导出
+## 3. 实施要点
+1. **任务页 `/tasks`**：若任务列表为服务端渲染，套用 P1 组件与暗色令牌；状态（排队/处理中/成功/失败）用 `Badge` 区分，进度条用主色
+2. **上传页 `/async-upload`**：统一按钮/拖拽区视觉，明确展示 `200MB` 上限与格式说明；成功/失败反馈对齐全站
+3. **主题一致**：`class="dark"` + 同一套 CSS 变量；若独立于 fork，则单独引入同 Token 的 Tailwind 产物
+4. **联邦导航**：`/tasks` 已在侧边栏（App Shell P2）挂接，保持入口一致
 
-2. **用户表格 `user_table.html`**：
-   - `.data-table`：同书籍表格结构
-   - `.data-header`：用户名、组、状态、操作
-   - `.data-actions`：编辑/禁用/删除
-
-3. **配置编辑 `config_edit.html`**：
-   - `.config-group`：分组折叠/展开
-   - `.config-item`：键名/键值 `.config-item .row .col`（键名 `.col-span-1`、键值 `.col-span-2`}
-   - `.save-btn`：保存按钮（Alpine `x-on:submit`）
-
-4. **操作按钮**（`_operation-btn.html`）：
-   - `.btn .btn-sm .btn-primary .btn-danger`：编辑/删除/查看
-   - `data-id` 传递至后端（Alpine `x-on:click`）
-
-5. **Alpine 交互**：
-   - 表格行高亮：`row-hover` 类，`x-on:mouseenter`/`x-on:mouseleave` 切换 `bg-gray-100`
-   - 批量勾选：同 Phase 4 的批量操作逻辑
-   - 状态徽章 `x-show` 根据 `ub.ReadBook.read_status` 显示
-
-## 2. 后端改动
-- 无。前端完全独立，后端路由、数据、API完全不动。
-
-## 3. 回测方法
-1. **本地构建**：同上
+## 4. 回测方法
+1. **本地/8086**：`systemctl restart async-upload`（或热更新）后验证
 2. **浏览器验证**：
-   - 后台登录后进入「书籍管理」->书籍列表，表格正常显示，状态徽章颜色正确
-   - 操作按钮（编辑/删除/查看）点击正常，跳转至相应页面
-   - 用户管理页面列出所有用户，状态、权限正常显示
-   - 配置编辑页各项可编辑，保存后生效
+   - `/tasks` 任务状态徽章、进度条、日志展示正确
+   - `/async-upload` 上传流程正常，200MB 提示与校验生效
+   - 主题切换在自研页生效，与 fork 页面风格一致
+   - 无控制台 JS 错误
 
-## 3. 推进标准（进入 P11 的门禁）
-- 后台各页面正常渲染，无 JS 错误
-- 所有操作按钮功能正常（编辑/删除/查看/保存）
-- 状态徽章颜色正确（未读/在读/已读）
-- 表格交替行色正常
+## 5. 推进标准（进入 P11 的门禁）
+- `/tasks` 与 `/async-upload` 视觉统一到全站 Design System，无旧 Bootstrap 残留
+- 任务/上传功能与协议不变，回测通过
+- 主题切换与 Sidebar 挂接正常
 
-## 3. 下一步门禁
-- P11（最终验收 + 上线）
+## 6. 下一步门禁
+- **P11（Accessibility / Performance Audit）**：将自研页纳入全站无障碍与性能审计范围。
 
-## 3. 备注
-- `admin.html` 的左侧Sidebar需保持与首页/书库页统一的 Sidebar 设计
-- `book_table.html` 的操作列保持 Calibre-Web 原有的功能入口（编辑/删除/查看），仅外观重写
+## 7. 备注
+- 自研页与服务是独立进程，重皮肤仅涉及其模板与静态样式，务必保持 `design/02-task-store-api.md` §2.4 约定的视觉一致与协议稳定。
 
 ---
 

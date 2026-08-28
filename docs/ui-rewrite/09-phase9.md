@@ -1,68 +1,66 @@
-# Calibre-Web UI 升级 — Phase 9：登录/注册
+# Calibre-Web UI 升级 — Phase 9：认证 + 管理后台（Auth + Admin）
+
+> 阶段定位：本阶段对应总体规划 `00-master-plan.md` §七 的 **P9（Auth + Admin）**。
+> 合并「登录/注册」与「管理后台」两类页面重皮肤，保持既有认证与后台功能语义完全不变。
 
 ## 0. 目标
-- 重皮肤 `login.html` 与 `register.html`
-- 保持原有的 Calibre-Web 登录流程不变（CAS/Ticket、表单验证）
-- 视觉风格与首页/书库页统一：深色模式、圆角 4–6px、按钮统一、Alpine.js 交互
-- 为登录/注册页添加「忘记密码」入口，与 CAS /CAS 子系统保持联动
+- 重皮肤 `login.html` / `register.html`：保持 Calibre-Web 登录流程（表单验证、CAS/Ticket）不变
+- 重皮肤后台：`admin.html`、`book_table.html`、`user_table.html`、`config_edit.html`
+- 全站视觉统一：深色模式、圆角 4–6px、统一按钮与间距、Alpine.js 交互
+- 登录/注册页作为首次触点，质量优先；后台表格增加「状态 / 操作」列并支持批量勾选
 
 ## 1. 影响项目文件
 - **Fork 内**：
-  - `cps/templates/login.html`（重写：登录表单、CAS 链接、忘记密码、主题切换按钮）
-  - `cps/templates/register.html`（重写：注册表单、协议链接、主题切换按钮）
-  - `cps/templates/include/_form-field.html`（新增：统一的输入框组件，含标签、icon、错误信息）
-  - `cps/templates/include/_cassistant.html`（新增：CAS 登录助手，显示 CAS 状态、重新登录链接）
-  - `cps/static/css/tailwind.css` / `input.css`（新增登录/注册页样式：`.login-box`、`.register-box`、`.form-field`）
+  - `cps/templates/login.html`（重写：登录表单、CAS 链接、忘记密码、主题切换）
+  - `cps/templates/register.html`（重写：注册表单、协议链接、主题切换）
+  - `cps/templates/admin.html`（重写：侧边栏 + 内容区，保持统一 Sidebar）
+  - `cps/templates/book_table.html`（重写：表格结构、状态徽章、操作按钮、批量勾选）
+  - `cps/templates/user_table.html`（重写：用户列表、状态、权限、操作）
+  - `cps/templates/config_edit.html`（重写：配置项分组与保存）
+  - `cps/templates/include/_form-field.html`（新增：统一输入框，含 label/icon/错误信息）
+  - `cps/templates/include/_operation-btn.html`（新增：编辑/删除/查看操作按钮组）
+  - `cps/templates/include/_status-badge.html`（复用 P1）
+  - `cps/static/css/tailwind.config.js` / `input.css`（登录/后台相关样式）
 
-- **calibre-stack（暂不涉及）**：
+- **calibre-stack（暂不涉及，P10 处理）**：
   - `async-upload/tasks_page.html`、`upload_page.html`
 
 ## 2. 后端改动
-- 无。`web.py`、`helper.py`、`db.py` 完全不动；仅前端模板改写，保持所有验证逻辑、CAS 链接、重定向地址不变。
+- 无。`web.py` 的 `login()`/`register()`、后台各路由与数据查询（`entries` 等）完全不动；仅前端展示与交互改写。
 
-## 2. 实施要点
-1. **登录页布局**：
-   - `.login-box`：`max-w-md` `mx-auto` `mt-8`，卡片式居中布局
-   - `.login-header`：站点名称 + 主题切换按钮
-   - `.login-body`：`.form-field`（用户名）+ `.form-field`（密码） + `.btn`（登录）
-   - `.login-footer`：`忘记密码` 链接 → `CAS` 重置页面 / `创建账户` 链接 → 注册页
+## 3. 实施要点
 
-2. **注册页布局**：
-   - `.register-box`：与登录页布局一致，字段含 用户名/邮箱/密码/确认密码/协议确认
-   - `.register-footer`：已有账户链接 → 登录页
+### 3.1 登录 / 注册
+1. `.login-box` / `.register-box`：`max-w-md` 居中卡片，`class="dark"` 主题切换
+2. 表单 `submit` 保持原有后端行为；`focus-visible` 焦点态；错误信息 `x-show` 绑定后端 `error`
+3. `忘记密码` → CAS 重置；`创建账户` ↔ 登录页互链；`Tab` 顺序自然
 
-3. **主题切换**：
-   - 与首页/书库页保持一致：`class="dark"` 控制、按钮 `@click="dark = !dark"`，`aria-label="切换护眼模式"`
+### 3.2 管理后台
+1. `book_table.html`：`.data-table` 交替行色，含状态徽章列与操作列（编辑/删除/查看），复用 P1 `Table`/`Badge`
+2. 批量勾选：复用 P8 的批量选择与操作栏逻辑；操作保持**表单提交**、不引入新 API
+3. `user_table.html`：用户名、组、状态、权限、操作（编辑/禁用/删除）
+4. `config_edit.html`：`.config-group` 分组折叠，`.save-btn` 保存，`x-on:submit`
+5. 表格行 hover 高亮（Alpine），保持原有功能入口
 
-4. **Alpine 交互**：
-   - 表单 `submit` 前的简单验证：`x-on:submit.prevent.prevent`
-   - 输入框 `x-on:focus` 添加 `focus-visible` 样式
-   - 错误信息 `x-show` 绑定后端返回的 `error` 变量
-
-## 1. 后端改动
-- 无。`web.py` 的 `login()`、`register()` 函数不动；前端模板仅在原有表单上进行视觉与交互增强。
-
-## 2. 回测方法
+## 4. 回测方法
 1. **本地构建**：同上
 2. **浏览器验证**：
-   - 打开 `login.html`：界面布局美观，主题切换生效，CAS 链接正常
-   - 打开 `register.html`：表单字段完整，主题切换生效
-   - `忘记密码` 链接正常跳转至 CAS 重置页面
-   - 表单提交：正确填写验证通过，错误填写显示错误信息
-   - `Esc` 关闭模态框（若以模态框形式），或 `Tab` 顺序自然
+   - 登录/注册流程、CAS 链接、忘记密码跳转正常；错误信息正确显示
+   - 后台各页正常渲染，状态徽章与操作按钮功能正确（编辑/删除/查看/保存）
+   - 批量勾选在后台表格可用；移动端表格可用
+   - 主题切换在登录/后台生效；无控制台 JS 错误
 
-## 3. 推进标准（进入 P10 的门禁）
-- 登录页/注册页视觉与首页统一（深色模式、圆角、统一按钮）
-- 所有表单验证正常，`忘记密码` 跳转正常
-- 主题切换在登录/注册页生效
-- 无控制台 JS 错误
+## 5. 推进标准（进入 P10 的门禁）
+- 登录/注册与后台各页视觉统一，功能与原有路由一致
+- 后台表格批量操作保持表单提交语义，后端返回正常
+- 主题切换生效；无控制台 JS 错误
 
-## 3. 下一步门禁
-- P10（管理后台重皮肤）
+## 6. 下一步门禁
+- **P10（Custom Pages）**：将 `/tasks`、`/async-upload` 自研页统一到同一 Design System。
 
-## 3. 备注
-- 登录/注册页作为用户的首次触点，视觉质量至关重要；需确保与首页/书库页风格完全一致
-- `x-data` 中的 `dark` 变量通过 `base.html` 继承，确保三端（Desktop/Tablet/Mobile）一致
+## 7. 备注
+- 登录/注册与后台是权限敏感面，重皮肤时不得改动任何认证/授权逻辑与 CAS 语义。
+- 后台操作列保持 Calibre-Web 原有功能入口，仅外观重写。
 
 ---
 

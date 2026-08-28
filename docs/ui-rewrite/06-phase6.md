@@ -1,66 +1,71 @@
-# Calibre-Web UI 升级 — Phase 6：可访问性 + 性能
+# Calibre-Web UI 升级 — Phase 6：搜索 + 筛选（Search / Filter）
 
 ## 0. 目标
-- 确保键盘导航流畅、无障碍符合 WCAG 2.1 AA 标准
-- 优化页面加载性能：减少 DOM 节点、懒加载、延迟加载
-- 图片和封面使用 `loading="lazy"` 与 `placeholder` 占位
-- 关键路径加速，首屏加载时间控制在 2 秒以内
+- 在 Header 添加 **Ctrl+K** 唤起全局搜索的快捷键
+- 搜索结果页面支持：书名、作者、ISBN、标签、系列、出版社、出版社
+- 筛选器采用 **Dropdown / Popover** 形式，Desktop 端用顶部 Filter Bar，移动端用 Bottom Sheet / Drawer
+- 搜索结果页面保持高信息密度，不堆砌无效卡片
 
 ## 1. 影响项目文件
 - **Fork 内**：
-  - `cps/templates/base.html`（添加 `lazy-loading` 占位、焦点管理相关代码）
-  - `cps/templates/layout.html`（加入 `loading` 属性及性能监控相关注释）
-  - `cps/static/css/tailwind.css` / `input.css`（新增 `prefers-reduced-motion`、 `lazy-loading` 相关样式）
-  - `cps/static/js/`（微调，主要是性能监控相关代码的精简）
+  - `cps/templates/search.html`（重写：搜索框、结果页布局、无结果提示）
+  - `cps/templates/search_form.html`（新增：紧凑的搜索输入框组件）
+  - `cps/templates/include/_search-filter.html`（新增：筛选器组合框）
+  - `cps/templates/include/_search-skeleton.html`（新增：占位加载动画）
+  - `cps/static/css/tailwind.css` / `input.css`（新增搜索相关样式：`.search-input`、`.result-item`、`.no-result`）
+  - `cps/static/js/`（Alpine.js 绑定 Ctrl+K、搜索交互）
 
 - **calibre-stack（暂不涉及）**：
   - `async-upload/tasks_page.html`、`upload_page.html`
 
 ## 2. 后端改动
-- 无。前端性能优化不涉及后端业务逻辑。
+- 无。搜索 API `simple_search`、`advanced_search` 完全不动；仅前端展示层改写。
 
 ## 2. 实施要点
-1. **图片懒加载**：
-   - 封面 `<img>` 标签添加 `loading="lazy"` 属性
-   - 封面占位图使用 `placeholder-gray-200` / `placeholder-cyan-200` 等 Tailwind 占位类
-   - 关键图片（首屏封面）保持 `loading="eager"`，其余图片使用 `loading="lazy"`
+1. **Header 搜索框**：
+   - `Ctrl+K` 唤起焦点（Alpine `@keydown.ctrl.k`）
+   - 输入实时筛选 `cps/web.py` 的 `search_results`，无需刷新页
+   - `placeholder`：「搜索书名、作者、ISBN、标签...」
 
-2. **关键路径优化**：
-   - `base.html` 只加载必要的核心 CSS/JS（Tailwind 构建已剔除未使用的 CSS）
-   - 非关键 JS（如批量操作、高级搜索）延迟加载，`defer` 属性
-   - CSS 仅引入必要的组件样式（`@apply` 仅提取必须的样式类）
+2. **搜索结果页**：
+   - 结果按相关性排序，展示：封面、标题、作者、简介片段
+   - `no-result` 状态：当无匹配时显示「没有找到相关书籍」「尝试调整筛选条件」
+   - 每行：`.result-item`（封面 `.cover`、标题 `.title`、作者 `.author`、简介 `.summary`）
 
-3. **性能监控**：
-   - 在 `base.html` 中引入 `PerformanceObserver`（或简单的 `console.time`）记录首屏加载时间
-   - 在 `console` 中输出 `DOMContentLoaded`、`load` 时间，便于回测对比
+3. **筛选器**：
+   - Desktop：顶部 `.filter-bar`（筛选：作者、分类、标签、语言、格式、阅读状态）
+   - Mobile：`menu` 触发 `.bottom-sheet`（筛选面板）
+   - 筛选条件通过 `query` 参数拼接传递给后端（如 `?author=xxx&tag=xxx`）
 
-4. **减少无效 DOM**：
-   - grid.html/list.html 中的书卡仅在可视区域内渲染（结合 `intersection observer` 思想，虽然不引入库，但可在模板层按需渲染关键数据）
-   - 清理无用的 `div`、`span`，使用更语义化的 HTML 标签
+4. **Alpine 交互**：
+   - `x-show` 控制搜索结果的显隐
+   - `x-on:input` 实时筛选
+   - `Esc` 键关闭搜索框
 
-## 1. 回测方法
+## 2. 后端改动
+- 无。搜索逻辑完全由前端驱动，后端仅提供 `search_results` 数据接口（已存在，不动）。
+
+## 3. 回测方法
 1. **本地构建**：同上
-2. **性能测试工具**：
-   - **Lighthouse**（Chrome DevTools）——首屏时间、总时间、可访问性得分
-   - **Chrome DevTools · Network面板**：查看关键路径资源加载时间
-   - **手动记录**：打开 F12 控制台，记录 `DOMContentLoaded` 与 `load` 两个时间点
-3. **验证清单**：
-   - 页首加载时间 ≤ 2 秒（Lighthouse 得分 ≥ 90）
-   - 封面懒加载：滚动至下方封面，图片平滑加载
-   - 关键路径资源已按优先级加载
-   - 没有控制台报错 `lazy-loading` 相关错误
+2. **浏览器验证**：
+   - `Ctrl+K` 唤起焦点并定位到输入框
+   - 输入关键字（如「西游」），结果列表即时出现，匹配书名/作者/ISBN/标签
+   - `Esc` 键关闭搜索框，焦点返回原位置
+   - 点击结果项跳转至书籍详情页
+   - 筛选器Desktop/移动端均可正常使用，筛选后结果正确
 
 ## 3. 推进标准（进入 P7 的门禁）
-- Lighthouse 综合得分 ≥ 90
-- 首屏加载时间 ≤ 2 秒
-- 封面懒加载平滑，无卡顿
-- 没有明显的卡顿或 JS 报错
+- Ctrl+K 正常唤起并聚焦输入框
+- 搜索结果匹配书名/作者/ISBN/标签
+- 筛选器Desktop/移动端均可使用，筛选后结果正确
+- 无控制台 JS 错误
 
 ## 3. 下一步门禁
-- P7（最终验收 + 上线）：全回归测试、Lighthouse 评分、部署上线
+- P7（书库导航）：作者 / 分类 / 标签 / 系列 / 书架
 
 ## 3. 备注
-- 性能优化在不牺牲视觉质量和功能的前提下进行。若 Lighthouse 得分受限于第三方资源（如 Google 字体、谷歌字体加载慢），可考虑使用国内免费字体替代，或延迟加载字体。
+- 搜索结果中，对 `isbn`、 `出版社`、 `系列` 的匹配优先级低于书名/作者，避免误匹配。
+- 移动端筛选器高度有限，仅保留「分类」和「语言」两个最常用条件，其他条件在 Desktop 端展开。
 
 ---
 

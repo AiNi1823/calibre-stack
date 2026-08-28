@@ -1,82 +1,69 @@
-# Calibre-Web UI 升级 — Phase 2：书库页面
+# Calibre-Web UI 升级 — Phase 2：App Shell（应用外壳）
+
+> 阶段定位：本阶段对应总体规划 `00-master-plan.md` §七 的 **P2（App Shell）**。
+> 在 P1 已锁定的 Design System 上建立全站骨架：左侧 Sidebar、Header、全局搜索入口、移动端 Drawer、跨端响应式。
 
 ## 0. 目标
-- 重皮肤 `grid.html`（书网格视图）和 `list.html`（书列表视图）
-- 保持 Grid⇄List 切换功能
-- 封面更显重点：圆角 4–6px，裁剪保持比例， lazy-loading
-- 状态徽章：未读/在读/已读 用颜色极简标记（不使用鲜艳色）
-- 工具栏：保留 Grid/List 切换按钮，并新增 ‘Batch Action Bar’（批量操作栏），点击后出现 ‘下载 / 收藏 / 修改标签 / 修改分类 / 删除’ 等选项
-- 支持键盘导航（Alpine 数据属性）
+- 重写 `layout.html` 为全站统一「应用外壳」：左侧 Sidebar（220–240px）+ Header + 内容区
+- 桌面端（`xl: 1200px` 及以上）Sidebar 常驻；平板/移动端（`< md`）Sidebar 折叠为 Drawer（抽屉），顶部汉堡按钮唤起
+- 在 Header 提供全局搜索入口（`Ctrl+K` 快捷键在此挂接，详情页与脚本在 P6 完善）
+- 主题切换按钮（`class="dark"`）在 Header 常驻（令牌来自 P1）
+- 所有子页面通过继承 `layout.html` 自动获得一致外壳，`dark` / `sidebarOpen` 状态跨页共享
 
 ## 1. 影响项目文件
 - **Fork 内**：
-  - `cps/templates/grid.html`（重写书卡结构，Tailwind 类，Alpine 交互）
-  - `cps/templates/list.html`（重写列表结构，保持原有列表形式但调整视觉）
-  - `cps/static/css/tailwind.css` / `input.css`（新增网格/列表相关的工具类，如 `.book-card`、`.book-list-item`、`.status-badge` 等）
-  - `cps/templates/include/_book-card.html`（提取为可复用组件，`grid.html` 和 `list.html` 共享）
-  - `cps/templates/include/_batch-action-bar.html`（新增：批量操作栏，含下载/收藏/标签/分类/删除）
+  - `cps/templates/layout.html`（完整重写为 App Shell：Sidebar + Header + Drawer + 内容区）
+  - `cps/templates/base.html`（保持 `{% extends "layout.html" %}` 与根 `x-data` 状态：`dark`、`sidebarOpen`）
+  - `cps/templates/include/_sidebar.html`（新增：导航项组件，含 aria 与选中态）
+  - `cps/templates/include/_header.html`（新增：顶部栏，含搜索、主题切换、账户菜单）
+  - `cps/static/css/tailwind.config.js` / `input.css`（App Shell 相关工具类：`.sidebar`、`.drawer`、`.header-bar`）
 
-- **calibre-stack（暂不涉及）**：
+- **calibre-stack（暂不涉及，P10 处理）**：
   - `async-upload/tasks_page.html`、`upload_page.html`
 
 ## 2. 后端改动
-- 无。 grid.html/list.html 的数据传输（`entries`、`entries[0]` 等）完全不动；仅改模板呈现样式。
+- 无。`layout.html`/`base.html` 仅前端骨架改写；后端路由、导航链接、权限判断完全不动。
 
-## 2. 实施要点
-1. **书卡结构**（grid.html）：
-   - `.book-card`：`grid-grid-flow-col gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`（响应式网格）
-   - `.book-card .cover`：`rounded-4xl`（替代原来的大圆角），`object-cover`，`lazy-loading`，`transition-transform` 轻微放大 hover 态
-   - `.book-card .meta`：`.title`（单行截断）、`.author`、`.series`（小号、灰色）
-   - `.book-card .status`：`status-badge`（见下）
+## 3. 实施要点
 
-2. **状态徽章**（`status-badge`）：
-   - `bg-gray-100 text-gray-800`：未读
-   - `bg-green-100 text-green-800`：在读
-   - `bg-blue-100 text-blue-800`：已读
-   - 尺寸：`text-xs`、`px-2`、`py-1`，圆角 `2px`
-   - 徽章上可能含简短文字：`未读`/`在读`/`已读`
+### 3.1 Sidebar（桌面常驻 + 移动端 Drawer）
+- 桌面：`xl`（≥1200px）常驻 `aside.fixed`（宽 220–240px）；内容区 `ml-[sidebar-width]`
+- 平板/移动：`< md`（768px）Sidebar 转 Drawer，初始 `x-transition` 从左侧滑出，遮罩层覆盖内容区
+- 导航项：书库 / 搜索 / 作者 / 分类 / 标签 / 系列 / 书架 / 任务（`/tasks`）/ 管理（`/admin`）
+- 当前页高亮（`aria-current="page"` + 主色背景）
+- Drawer 关闭：点遮罩、`Esc`、选完导航项后自动收起
 
-3. **列表视图**（list.html）：
-   - 保持原有的表格/行结构，但 `.book-row` 的 `.cover` 圆角改为 `rounded-4`
-   - `.book-row .meta`：`.title` 左对齐、`.author` 右对齐
-   - 每行高度固定，纵向间距 `my-2`，横向间距 `mx-2`
-   - 每行末尾保留 ‘Grid / List’ 切换按钮（Alpine 控制 `grid-view` / `list-view` 的显示/隐藏）
+### 3.2 Header
+- 左侧：移动端「汉堡」按钮（`< md` 显示），桌面隐藏
+- 中部/右侧：全局搜索框（`Ctrl+K` 唤起，P6 完善行为）、主题切换按钮（`@click="dark = !dark"` + `aria-label="切换护眼模式"`）、账户菜单
+- 搜索框在移动端可收进 Drawer 或图标唤起
 
-4. **批量操作栏**（`_batch-action-bar.html`）：
-   - 初始隐藏：`hidden`，点击左上角「复选框」图标后 `x-show` 变 `block`
-   - 包含按钮：`Download`（下拉选格式）・`Add to shelf`（收藏）・`Edit tags`（修改标签）・`Edit category`（修改分类）・`Delete`（删除）
-   - 选中状态：左上角显示 ‘已选 N 本’，点击按钮前样式 `hidden`，点击后 `block`；点击任意其他位置收起
+### 3.3 跨端状态
+- 根 `x-data="{ dark: false, sidebarOpen: false }"` 在 `base.html` 维护
+- `layout.html` 通过 `x-show` / `x-transition` 根据 `sidebarOpen` 控制 Sidebar/Drawer
+- `dark` 状态持久化（localStorage）并在所有子页面保持一致
 
-5. **Alpine 交互**：
-   - Grid/List 切换：`x-data="{ view: 'grid' }`，`'grid-button'@click='view = \'grid\'` / `'list-button'@click='view = \'list\'``
-   - 批量选中：`x-data=" { selected: [], }`，`'book-row'@click='selected.indexOf($event.dataset.id) !== -1 ? selected.splice(selected.indexOf($event.dataset.id), 1) : selected.push($event.dataset.id)'`}
-   - 批量操作栏显示：`x-show="selected.length > 0`，`x-transition` 淡入淡出
+## 4. 回测方法
+1. **本地构建**：`npm install && npx tailwindcss -i ./cps/static/css/input.css -o ./cps/static/css/tailwind.css`
+2. **浏览器/Playwright 分端验证**：
+   - Desktop（≥1200px）：Sidebar 常驻，Header 搜索/主题/账户可用
+   - Tablet（768–1199px）与 Mobile（<768px）：Sidebar 折叠，汉堡打开 Drawer，遮罩点击 / `Esc` 关闭
+   - 主题切换在任意子页面生效且状态跨页保持
+   - `Ctrl+K` 唤起搜索框焦点
+3. **无控制台 JS 错误**（Alpine 未定义变量等）
 
-## 2. 后端改动
-- 无。grid.html/list.html 的数据完全不动。
+## 5. 推进标准（进入 P3 的门禁）
+- 桌面/平板/移动三端外壳布局正确，无断层
+- Drawer 打开/关闭流畅（遮罩、汉堡、`Esc`）
+- 导航项均可跳转且当前项高亮
+- 主题切换跨页一致；无控制台错误
 
-## 3. 回测方法
-1. **本地构建**：同上
-2. **浏览器验证**：
-   - Grid 视图：封面正常，圆角 4–6px，状态徽章颜色正确，Hover 有轻微放大
-   - List 视图：列表形式正常，圆角 4，状态徽章颜色正确
-   - Grid⇄List 切换：点击按钮，视图平滑切换（无闪烁）
-   - 批量操作：勾选复选框（或点击头像），批量操作栏出现；点击外部或‘取消’收起
-   - Ctrl 多选（若浏览器支持）：`Cmd/Ctrl + click` 追加/取消勾选
+## 6. 下一步门禁
+- **P3（Library）**：在 App Shell 之上重皮肤网格/列表书库页。
 
-## 3. 推进标准（进入 P3 的门禁）
-- grid.html 和 list.html 在桌面/移动端均能正常渲染
-- Grid⇄List 切换流畅，无闪烁
-- 状态徽章颜色符合设计（未读/在读/已读）
-- 批量操作栏在勾选后出现，点击外部或‘取消’收起
-- Alpine 无错误
-
-## 4. 下一步门禁
-- P3（书籍详情页）：重皮肤 `detail.html`（封面+元数据+操作按钮优先级：阅读/下载/收藏/更多）
-
-## 备注
-- `_book-card.html` 与 `_batch-action-bar.html` 的提取若对代码量有顾虑，可直接在 grid.html/list.html 中写 inline；提取目的是为了复用与保持代码整洁。
-- `status-badge` 的颜色可在 `tailwind.config.js` 的 `theme.extend.colors` 中统一声明，便于后续深浅色互换。
+## 7. 备注
+- App Shell 是后续所有页面的「皮肤载体」，务必与 P1 Design System 的组件/令牌严格一致。
+- `sidebarOpen` 与 `dark` 状态继承机制是本阶段关键，任何子页面不得另辟状态管理。
 
 ---
 

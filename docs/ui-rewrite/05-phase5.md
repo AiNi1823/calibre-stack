@@ -1,101 +1,75 @@
-# Calibre-Web UI 升级 — Phase 5：暗色模式 + 响应式 + 无障碍
+# Calibre-Web UI 升级 — Phase 5：首页（Home）
 
 ## 0. 目标
-- 实现真正的深色模式（`class="dark"`），而非原有的 blur/plex 风格
-- 确保桌面（>=1200px）、平板（768–1199px）和移动端（<768px）三端布局均匀
-- 符合无障碍访问标准：焦点态、aria-label、键盘导航、色彩对比度
-- 所有组件在三端保持一致的视觉与交互
+- 重设计首页 `index.html`，不再是单纯的「随机书籍」展示区
+- 成为用户最关心的入口：继续阅读 / 最近添加 / 最近阅读 / 我的收藏 / 推荐/发现
+- 利用已有的阅读进度数据 `ub.ReadBook` 与 `ub.BookProgress`，展示「继续阅读」
+- 保持与后端 API 的兼容，不改变任何路由与数据结构
 
 ## 1. 影响项目文件
 - **Fork 内**：
-  - `cps/templates/base.html`（添加 `dark` 类切换按钮，及 `x-data` 维持主题状态）
-  - `cps/templates/layout.html`（在移动端实现抽屉，三端断点控制）
-  - `cps/static/css/tailwind.css` / `input.css`（深色模式变量、响应式断点、焦点样式）
-  - `cps/static/js/`（微调 Alpine 数据，确保 `dark` 状态在三端共享）
+  - `cps/templates/index.html`（首页完整重写：区块布局、Alpine交互、lazy-loading）
+  - `cps/templates/layout.html`（继承 `index.html`，保持 `x-data` 状态同步，主题切换）
+  - `cps/templates/include/_book-card.html`（提取为可复用组件，复用于首页、网格、详情页）
+  - `cps/static/css/tailwind.css` / `input.css`（新增首页区块样式：`.hero-section`、`.reading-item`、`.favorite-item` 等）
+  - `cps/templates/include/_reading-item.html`（新增：继续阅读项组件，封面+标题+进度+操作）
+  - `cps/templates/include/_reading-list.html`（新增：最近添加/最近阅读区块组件）
+  - `cps/templates/include/_favorite-list.html`（新增：我的收藏区块组件）
 
 - **calibre-stack（暂不涉及）**：
   - `async-upload/tasks_page.html`、`upload_page.html`
 
 ## 2. 后端改动
-- 无。仅在 `base.html` 中添加主题切换按钮和 `x-data` 数据维护，不涉及业务逻辑。
+- **极简后端改动**（高度推荐，虽属「后端改动」但改动极其微小）：
+  - `cps/web.py`：新增 `def currently_reading_books()`，按 `ub.BookProgress.read_progress` 降序排列，返回最近阅读过的书籍列表（最多 5 本），用于首页「继续阅读」区块
+  - `cps/web.py` 中 `index()` 函数：在现有上下文 `context['currently_reading'] = currently_reading_books()` 中注入
+  - `cps/db.py`：无需改动（`ub.BookProgress` 表已存在，仅新增一个轻量查询）
+
+> **备注**：若不想改动后端，首页的「继续阅读」区块可使用模板层逻辑：从用户的最近浏览历史（`web.history` 表）或随机从已有书籍中抽取，效果虽不如后端数据精准，但零改动。此处提供「后端改动写法」以供参考，实际施工时可根据需求选其一。
 
 ## 2. 实施要点
-1. **深色模式实现**：
-   - `class="dark"` 在 `<html>` 标签上控制；Tailwind 内置 `dark:` 前缀使用
-   - 顶部主题切换按钮：`<button @click="dark = !dark" class="btn btn-sm btn-outline">`
-   - `tailwind.config.js` 中预先声明浅色/深色变量（沿用 Phase 0 设计令牌）
-   - 所有组件通过 `dark:` 前缀自动切换颜色（按钮背景、边框、文字、背景）
+1. **首页区块布局**：
+   - `.hero-section`：显示「继续阅读」区块（置顶）
+   - `.recent-adding`：最近添加的 4 本书（封面+标题+作者）
+   - `.recent-reading`：继续阅读的 4 本书（封面+标题+进度条）
+   - `.favorite-list`：我的收藏的 4 本书（封面+标题）
+   - `.recommend-discovery`：推荐/发现区（随机书籍 + 分类入口）
 
-2. **响应式断点**：
-   - `>=1200px`：桌面端——左侧 Sidebar（220px）+ 内容区
-   - `768–1199px`：平板端——Sidebar 折叠为汉堡菜单，内容区宽度自动
-   - `<768px`：移动端——Sidebar 完全隐藏，顶部含菜单按钮，Drawer（抽屉）从左侧滑出
-   - 在 `tailwind.config.js` 的 `theme.screens` 中预先声明断点
+2. **继续阅读区块实现**（以后端改动版为例）：
+   - 在 `index.html` 模板顶部：`{% if currently_reading %} ... {% endif %}`
+   - 每个阅读项：`.reading-item`（封面 `.cover`、标题 `.title`、进度 `.progress`、操作 `'继续阅读'`）
 
-3. **无障碍访问**：
-   - **焦点样式**：`focus-visible` 类，边框颜色 `#2563EB`，宽度 `2px`，轮廓 `none`
-   - **aria-label**：导航按钮、收起/展开按钮、主题切换按钮均添加 `aria-label`
-   - **键盘导航**：`Tab` 顺序自然，`Esc` 关闭抽屉/模态框
-   - **色彩对比度**：`color-contrast` utility，确保浅色背景下深色文字、深色背景下浅色文字
+3. **Alpine 交互**：
+   - 封面悬停微放大
+   - 点击封面跳转至书籍详情页 `web.show_book`
+   - 主题变量 `dark` 继承自 `base.html`
 
-4. **跨端状态同步**：
-   - `x-data=" { dark: false, sidebarOpen: false }"` 在 `base.html` 根层维护
-   - `layout.html` 通过 `x-show`/`x-transition` 根据 `sidebarOpen` 控制 Sidebar/Drawer
-   - `maintain` 主题切换 `dark` 变量在所有页面一致
+4. **组件复用**：
+   - `_book-card.html` 提取为公共组件，`index.html`、`grid.html`、`detail.html` 公用
+   - `_reading-item.html` 专门用于首页「继续阅读」区块
+   - `_favorite-list.html` 用于首页「我的收藏」区块
 
-## 1. 影响项目文件
-- **Fork 内**：
-  - `cps/templates/base.html`（添加主题切换按钮、`x-data` 根数据）
-  - `cps/templates/layout.html`（三端断点控制 Sidebar/Drawer）
-  - `cps/static/css/tailwind.css` / `input.css`（深色模式变量、响应式断点、焦点样式）
-  - `cps/static/js/`（微调 Alpine 数据，确保 `dark` 状态同步）
-
-- **calibre-stack（暂不涉及）**：
-  - `async-upload/tasks_page.html`、`upload_page.html`
-
-## 2. 后端改动
-- 无。`base.html` 与 `layout.html` 仅在前端模板层改写，后端路由和数据完全不动。
-
-## 2. 实施要点
-1. **主题切换按钮**：
-   - 放置在 Header 右侧
-   - 点击切换 `dark` 变量，Tailwind 自动切换颜色集
-   - 按钮 `aria-label="切换护眼模式"`，`x-data` 中 `dark` 状态同步
-
-2. **响应式断点**：
-   - 使用 Tailwind `screens: { sm: '640px', md: '768px', lg: '1024px', xl: '1200px' }`
-   - Sidebar 在 `md`（768px）以上可见，`md` 以下自动转为抽屉
-   - 移动端（<768px）顶部含菜单按钮 `бургер`，点击后 Drawer 从左侧 `transform-x-0` 进入
-
-3. **焦点样式**：
-   - `Tailwind` 预置 `focus-visible` 类：`focus-visible: outline-2 focus-visible:outline-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-2 focus-visible:ring-color`
-   - 确保键盘导航时每个可交互元素都有明显的焦点轮廓
-
-4. **色彩对比度检查**：
-   - 使用 `contrast-contrast` utility 或手动验证：浅色背景下深色文字对比度 ≥ 4.5:1，深色背景下浅色文字对比度 ≥ 4.5:1
-   - `tailwind.config.js` 中 `theme.extend.colors` 已预先声明满足 WCAG 2.1 AA 标准的颜色值
-
-## 1. 回测方法
+## 3. 回测方法
 1. **本地构建**：同上
-2. **浏览器验证**（分三端测试）：
-   - **Desktop (1200px+)**：左侧 Sidebar  visible，主题切换按钮可点击，焦点轮廓明显
-   - **Tablet (768–1199px)**：Sidebar 折叠，汉堡菜单出现，点击后 Drawer 滑出
-   - **Mobile (<768px)**：顶部含菜单按钮，Drawer 全宽滑出，焦点轮廈可见
-   - **色彩对比度**：人工或工具检查关键元素（按钮、文字、背景）的对比度
-   - **焦点导航**：`Tab` 遍历所有可交互元素，`Esc` 关闭抽屉/模态框
+2. **浏览器验证**：
+   - 首页按区块正常显示：继续阅读、最近添加、最近阅读、收藏、推荐/发现
+   - 继续阅读区块‘有书籍时’显示 4 本书的封面+标题+进度；‘无书籍时’显示「暂无继续阅读记录」
+   - 封面点击跳转至书籍详情页
+   - 主题切换在首页生效
+   - 点击封面跳转至书籍详情页正常
 
 ## 3. 推进标准（进入 P6 的门禁）
-- 深色模式在三端均可开启/关闭，CSS 变量生效
-- 三端布局（桌面/平板/移动）均正常，无断层
-- 焦点轮廈可见，`aria-label` 完整，`Esc` 关闭抽屉/模态框
-- 色彩对比度符合 WCAG 2.1 AA 标准
+- 首页各区块布局正常，无重叠、无折行异常
+- 继续阅读区块数据正确（有书籍时显示具体书籍，无书籍时显示提示语）
+- 封面点击跳转正常，主题切换在首页生效
+- Alpine 无错误
 
 ## 3. 下一步门禁
-- P6（可访问性 + 性能）：键盘导航、加载延迟、图片占位符
+- P6（搜索+筛选）：全局搜索框 + Ctrl+K 唤起 + 筛选条件
 
 ## 3. 备注
-- `base.html` 中的 `dark` 变量状态在所有子页面通过 `x-data` 继承，确保主题切换不出现“卡顿”或“不同步”
-- `tailwind.config.js` 的 `darkMode: 'class'` 模式，意味着仅当 `<html>` 有 `class="dark"` 时才应用深色样式，不会影响其他页面
+- 后端改动 `cps/web.py` 仅 10 行左右，风险极小， strongly 推荐采用「有后端查询」版本，以获得最佳用户体验
+- 若不想改后端，「模板层实现」可通过 `ub.BookProgress` 相关字段的模板层推断，或随机从现有书籍列表中抽取 4 本展示「继续阅读」，效果虽不如后端查询精准，但零改动
 
 ---
 

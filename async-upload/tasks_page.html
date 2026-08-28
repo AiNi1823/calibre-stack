@@ -4,51 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>上传任务 · Calibre</title>
-    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/static/css/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/tailwind.css">
     <style>
-        body { padding: 20px 0 60px; background: #f0f0f0; }
-        .cw-container { max-width: 1000px; margin: 0 auto; padding: 0 15px; }
-        .panel { border-radius: 4px; }
-        .status-chip { display:inline-block; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:600; }
-        .s-success { background:#d4edda; color:#155724; }
-        .s-running, .s-pending { background:#cce5ff; color:#004085; }
-        .s-failed { background:#f8d7da; color:#721c24; }
-        .s-cancelled { background:#e2e3e5; color:#383d41; }
-        .detail-cell { max-width: 320px; word-break: break-all; color:#666; font-size:13px; }
-        .nav-bar { margin-bottom: 20px; }
-        .nav-bar a { margin-right: 18px; }
-        .empty { text-align:center; color:#999; padding:40px 0; }
+        body { background: rgb(var(--background) / 100%); color: rgb(var(--text-primary)); }
+        .cw-wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+        .cw-page-title { font-size: 18px; font-weight: 600; color: rgb(var(--text-primary)); }
+        .status-chip { display:inline-block; padding:2px 10px; border-radius:9999px; font-size:12px; font-weight:600; }
+        .s-success { background: rgb(var(--success) / 12%); color: rgb(var(--success)); }
+        .s-running, .s-pending { background: rgb(var(--primary) / 12%); color: rgb(var(--primary)); }
+        .s-failed { background: rgb(var(--danger) / 12%); color: rgb(var(--danger)); }
+        .s-cancelled { background: rgb(var(--surface-secondary)); color: rgb(var(--text-secondary)); }
+        .detail-cell { max-width: 320px; word-break: break-all; color: rgb(var(--text-secondary)); font-size: 13px; }
+        .empty { text-align:center; color: rgb(var(--text-muted)); padding:40px 0; }
+        .theme-toggle { background:none; border:1px solid rgb(var(--border)); color:rgb(var(--text-secondary));
+                        border-radius:6px; padding:4px 10px; font-size:13px; cursor:pointer; }
+        .theme-toggle:hover { background: rgb(var(--surface-secondary)); }
     </style>
 </head>
-<body>
-<div class="cw-container">
-    <div class="nav-bar">
-        <a href="/" class="btn btn-default btn-sm">&larr; 返回书库</a>
-        <a href="/async-upload" class="btn btn-default btn-sm">上传页面</a>
-        <button id="scanBtn" class="btn btn-primary btn-sm">全库扫描</button>
-        <span id="counts" class="label label-default" style="margin-left:10px;"></span>
-    </div>
-
-    <div class="panel panel-default">
-        <div class="panel-heading"><strong>上传 / 处理任务</strong>
-            <span class="pull-right" style="color:#999; font-weight:normal;">每 5 秒自动刷新</span>
+<body style="padding:20px 0 60px;">
+<div class="cw-wrap">
+    <div class="flex items-center justify-between gap-3 mb-4">
+        <a href="/" class="cw-btn cw-btn--secondary cw-btn--sm">&larr; 返回书库</a>
+        <div class="flex items-center gap-2">
+            <a href="/async-upload" class="cw-btn cw-btn--secondary cw-btn--sm">上传页面</a>
+            <button id="scanBtn" class="cw-btn cw-btn--sm">全库扫描</button>
+            <button id="themeBtn" class="theme-toggle" type="button">主题</button>
         </div>
-        <div class="panel-body" style="padding:0;">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover" style="margin-bottom:0;">
-                    <thead>
-                        <tr>
-                            <th>#</th><th>标题</th><th>源文件</th>
-                            <th>阶段</th><th>状态</th><th>详情</th><th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="taskRows">
-                        <tr><td colspan="7" class="empty">加载中…</td></tr>
-                    </tbody>
-                </table>
-            </div>
+    </div>
+    <div id="counts" class="cw-caption mb-3"></div>
+
+    <div class="cw-card">
+        <div class="flex items-center justify-between px-4 py-2 border-b" style="border-color: rgb(var(--border));">
+            <strong class="cw-page-title">上传 / 处理任务</strong>
+            <span class="cw-caption">每 5 秒自动刷新</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="cw-table">
+                <thead>
+                    <tr>
+                        <th>#</th><th>标题</th><th>源文件</th>
+                        <th>阶段</th><th>状态</th><th>详情</th><th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="taskRows">
+                    <tr><td colspan="7" class="empty">加载中…</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -78,10 +79,10 @@ function renderTasks(tasks){
         const detail = (t.detail || '').replace(/</g,'&lt;');
         let ops = '';
         if(t.book_id){
-            ops = `<a class="btn btn-xs btn-default" href="/book/${t.book_id}" target="_blank">查看</a>`;
+            ops = `<a class="cw-btn cw-btn--secondary cw-btn--sm" href="/book/${t.book_id}" target="_blank">查看</a>`;
         }
         if(t.status === 'failed'){
-            ops = `<button class="btn btn-xs btn-warning" onclick="retry(${t.id})">重试</button> ` + ops;
+            ops = `<button class="cw-btn cw-btn--danger cw-btn--sm" onclick="retry(${t.id})">重试</button> ` + ops;
         }
         return `<tr>
             <td>${t.id}</td>
@@ -114,6 +115,20 @@ document.getElementById('scanBtn').addEventListener('click', () => {
         setTimeout(() => document.getElementById('scanBtn').textContent = '全库扫描', 2000);
     });
 });
+
+document.getElementById('themeBtn').addEventListener('click', () => {
+    const root = document.documentElement;
+    const dark = root.classList.toggle('dark');
+    try { localStorage.setItem('calibre-theme', dark ? 'dark' : 'light'); } catch(e) {}
+});
+(function(){
+    const STORE = 'calibre-theme';
+    const apply = t => document.documentElement.classList.toggle('dark', t === 'dark');
+    let saved = null;
+    try { saved = window.localStorage.getItem(STORE); } catch(e) {}
+    if (saved === 'dark' || saved === 'light') apply(saved);
+    else apply(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+})();
 
 load();
 setInterval(load, 5000);

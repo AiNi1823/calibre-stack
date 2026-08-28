@@ -52,8 +52,12 @@
    - 样式：`src/input.css` 新增 `.cw-auth*`、`.cw-field-label`。
    - 冒烟：`/tmp/opencode/smoke_auth.py`（login 含错误态 + register 全 marker OK）；`get_template` 编译 login/register/user_table/book_table 全通过。
    - **偏差/延后**：`admin.html`/`config_edit.html` 深度改版因改动面大，留待专项（防会话冻结风险）。
-6. **P10（Custom Pages）**：见 `docs/ui-rewrite/10-phase10.md`。`/tasks`、`/async-upload` 自研页统一到同一 Design System。可顺带补 P9 延后的 `admin.html`/`config_edit.html`。每阶段完成后更新 doc + HANDOFF，commit + push。
-7. 之后 P10→P12 按 `docs/ui-rewrite/0X-phaseX.md` 顺序，每阶段 commit+push。
+6. **P10（Custom Pages）✅ 已完成**：`async-upload` 自研页 `/tasks`（`tasks_page.html`）与 `/async-upload`（`upload_page.html`）重皮肤到全站 Design System——Bootstrap/蓝底 → `.cw-btn*`/`.cw-table`/状态徽章/`rgb(var(--*))` 令牌；两页共用 `calibre-theme` localStorage key（与 fork `theme.js` 同步）+ `themeBtn` + prefers-color-scheme。后端/`server.py`/nginx 全未改。
+   - 关键：`tailwind.config.js` content 修复 `./async-upload` → `../async-upload`（否则 utilities 不生成）；重建 `tailwind.css`（38.9→39.3KB）。
+   - 路由：`<link href="/static/css/tailwind.css">` 走 nginx `css` regex→fork:8083，与原有 `/static/css/bootstrap.min.css` 同源可解析。
+   - 校验：两页所有 class 均解析（tailwind.css 或页面内联 `<style>`）；HTML 结构收拢 OK；构建通过。
+7. **P11（Accessibility / Performance Audit）**：见 `docs/ui-rewrite/11-phase11.md`。将自研页（/tasks、/async-upload）纳入全站无障碍与性能审计范围。每阶段完成后更新 doc + HANDOFF，commit + push。
+8. 之后 P11→P12 按 `docs/ui-rewrite/0X-phaseX.md` 顺序，每阶段 commit+push。
 
 ## 5. 环境备忘
 - 构建：`cd /opt/calibre-stack/calibre-web && npm install && npm run build`（产物提交，VPS 运行期无需 Node；node_modules 已 gitignore）

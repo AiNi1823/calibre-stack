@@ -4,6 +4,7 @@ module.exports = {
     './cps/templates/**/*.html',
     './cps/templates/*.html',
     './async-upload/**/*.html',
+    '../async-upload/**/*.html',
   ],
   darkMode: 'class',
   theme: {

@@ -65,9 +65,9 @@
       </nav>
     </aside>
 
-    <aside class="cw-sidebar cw-sidebar--drawer" :class="$store.ui.sidebarOpen ? 'cw-sidebar--open' : ''" x-cloak>
+    <aside id="mobile-nav" class="cw-sidebar cw-sidebar--drawer" role="dialog" aria-modal="true" aria-label="{{_('Browse')}}" :class="$store.ui.sidebarOpen ? 'cw-sidebar--open' : ''" x-cloak>
       <div class="cw-sidebar__head flex items-center justify-between">
-        <span>{{instance}}</span>
+        <span id="drawer-title">{{instance}}</span>
         <button type="button" class="cw-btn--icon" @click="$store.ui.closeSidebar()" aria-label="{{_('Close')}}">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
@@ -95,7 +95,7 @@
 
     <div class="cw-main">
       <header class="cw-header">
-        <button type="button" class="cw-btn--icon lg:hidden" @click="$store.ui.openSidebar()" aria-label="{{_('Toggle Navigation')}}">
+        <button type="button" class="cw-btn--icon lg:hidden" @click="$store.ui.openSidebar()" :aria-expanded="$store.ui.sidebarOpen ? 'true' : 'false'" aria-controls="mobile-nav" aria-label="{{_('Toggle Navigation')}}">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
 
@@ -144,16 +144,16 @@
 
           {% if current_user.is_authenticated or g.allow_anonymous %}
           <div class="cw-dropdown">
-            <button type="button" class="cw-btn--icon" @click="drop = !drop" @click.outside="drop = false" :aria-expanded="drop ? 'true' : 'false'" aria-label="{{_('Account')}}" x-data="{ drop: false }">
+            <button type="button" class="cw-btn--icon" @click="drop = !drop" @click.outside="drop = false" :aria-expanded="drop ? 'true' : 'false'" aria-haspopup="menu" aria-label="{{_('Account')}}" x-data="{ drop: false }">
               <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">{{ current_user.name[:1]|upper }}</span>
             </button>
-            <div x-show="drop" x-transition x-cloak class="cw-dropdown__menu" x-data="{ drop: false }">
+            <div x-show="drop" x-transition x-cloak class="cw-dropdown__menu" role="menu" aria-label="{{_('Account')}}" x-data="{ drop: false }">
               {% if not current_user.is_anonymous %}
-              <a class="cw-dropdown__item" id="top_user" href="{{url_for('web.profile')}}">{{current_user.name}}</a>
-              <a class="cw-dropdown__item" id="logout" href="{{url_for('web.logout', next=(request.path + "?" + request.query_string.decode("utf-8")).rstrip("?"))}}">{{_('Logout')}}</a>
+              <a class="cw-dropdown__item" role="menuitem" id="top_user" href="{{url_for('web.profile')}}">{{current_user.name}}</a>
+              <a class="cw-dropdown__item" role="menuitem" id="logout" href="{{url_for('web.logout', next=(request.path + "?" + request.query_string.decode("utf-8")).rstrip("?"))}}">{{_('Logout')}}</a>
               {% else %}
-              <a class="cw-dropdown__item" id="login" href="{{url_for('web.login')}}">{{_('Login')}}</a>
-              {% if g.allow_registration %}<a class="cw-dropdown__item" id="register" href="{{url_for('web.register')}}">{{_('Register')}}</a>{% endif %}
+              <a class="cw-dropdown__item" role="menuitem" id="login" href="{{url_for('web.login')}}">{{_('Login')}}</a>
+              {% if g.allow_registration %}<a class="cw-dropdown__item" role="menuitem" id="register" href="{{url_for('web.register')}}">{{_('Register')}}</a>{% endif %}
               {% endif %}
             </div>
           </div>

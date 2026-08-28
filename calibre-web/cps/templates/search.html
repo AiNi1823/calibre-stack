@@ -5,13 +5,13 @@
     {% if entries|length < 1 %}
       <div class="cw-search__noresult flex flex-col items-center gap-2 pt-12 text-center">
         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-neutral-400"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <h2 class="text-lg font-semibold">{{_('No Results Found')}}</h2>
+        <h1 class="text-lg font-semibold">{{_('No Results Found')}}</h1>
         <p class="text-neutral-500">{{_('No books match')}} “{{adv_searchterm}}”</p>
         <p class="text-sm text-neutral-400">{{_('Try adjusting your keywords or filters.')}}</p>
       </div>
     {% else %}
       <div class="mb-3 flex flex-wrap items-center gap-2">
-        <h2 class="cw-section-title">{{result_count}} {{_('Results for:')}} “{{adv_searchterm}}”</h2>
+        <h1 class="cw-section-title">{{result_count}} {{_('Results for:')}} “{{adv_searchterm}}”</h1>
         {% if current_user.is_authenticated and (current_user.shelf.all() or g.shelves_access) %}
           <div id="shelf-actions" class="btn-toolbar" role="toolbar">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

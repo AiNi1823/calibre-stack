@@ -133,7 +133,7 @@
                 {% endif %}
             </div>
 
-            <h2 id="title" class="cw-title">{{ entry.title }}</h2>
+            <h1 id="title" class="cw-title">{{ entry.title }}</h1>
             <p class="cw-book-author">
                 {% for author in entry.ordered_authors %}
                     <a href="{{ url_for('web.books_list',  data='author', sort_param='stored', book_id=author.id ) }}">{{ author.name.replace('|',',') }}</a>
@@ -258,7 +258,7 @@
 
             {% if entry.comments|length > 0 and entry.comments[0].text|length > 0 %}
                 <div class="cw-detail__comments mt-4">
-                    <h3 id="decription" class="cw-subtitle">{{ _('Description:') }}</h3>
+                    <h2 id="decription" class="cw-subtitle">{{ _('Description:') }}</h2>
                     <div class="cw-body">{{ entry.comments[0].text|clean_string|safe }}</div>
                 </div>
             {% endif %}

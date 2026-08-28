@@ -56,8 +56,11 @@
    - 关键：`tailwind.config.js` content 修复 `./async-upload` → `../async-upload`（否则 utilities 不生成）；重建 `tailwind.css`（38.9→39.3KB）。
    - 路由：`<link href="/static/css/tailwind.css">` 走 nginx `css` regex→fork:8083，与原有 `/static/css/bootstrap.min.css` 同源可解析。
    - 校验：两页所有 class 均解析（tailwind.css 或页面内联 `<style>`）；HTML 结构收拢 OK；构建通过。
-7. **P11（Accessibility / Performance Audit）**：见 `docs/ui-rewrite/11-phase11.md`。将自研页（/tasks、/async-upload）纳入全站无障碍与性能审计范围。每阶段完成后更新 doc + HANDOFF，commit + push。
-8. 之后 P11→P12 按 `docs/ui-rewrite/0X-phaseX.md` 顺序，每阶段 commit+push。
+7. **P11（A11y + Performance Audit）✅ 已完成（Code hard-fixes only）**：前端代码硬修复——唯一 `<h1>`+无跳级（index/search/author/shelf/detail/login/register）、移动 Drawer 焦点管理（`ui.js`）+`role="dialog"`/`aria-modal`、汉堡 `aria-expanded`/`aria-controls`、下拉 `role="menu"`/`menuitem`/`aria-haspopup`、OAuth 链接 `aria-label`+SVG `aria-hidden`；`loading="lazy"`/`prefers-reduced-motion`/`:focus-visible` 已在 P1 baseline 就位。后端未改；`tailwind.css` 无增量。
+   - 校验：`node --check` + 6 组冒烟渲染全 OK + heading 静态校验 + `npm run build`。
+   - **延后（§9 专项）**：Playwright + `@axe-core/playwright`、Lighthouse ≥90、1K/5K/10K 大书库基线 —— 缺测试基础设施，未实施；不阻塞 P12。
+8. **P12（Production Cutover）**：见 `docs/ui-rewrite/12-phase12.md`。全回归 + nginx `:8084` 切换 + 回滚预案。每阶段完成后更新 doc + HANDOFF，commit + push。
+9. 之后 P12 按 `docs/ui-rewrite/12-phase12.md`，commit + push。
 
 ## 5. 环境备忘
 - 构建：`cd /opt/calibre-stack/calibre-web && npm install && npm run build`（产物提交，VPS 运行期无需 Node；node_modules 已 gitignore）

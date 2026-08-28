@@ -38,9 +38,10 @@
 1. **P5（Home）✅ 已完成**：首页 `index.html` 区块重组（继续阅读 / 最近阅读 / 最近添加）。
    - 用户已在会话中**批准一次极简后端改动**：`web.py` 新增 `get_home_reading()`（join `ub.ReadBook`），仅在首页 `page == 'newest'` 注入 `currently_reading`/`recently_read`。此批准仅限 P5 本次。
    - **未实现**：我的收藏区块（需书架数据）、`_reading-item`/`_book-card` include 组件拆分。
-2. **P6（搜索 + 筛选）**：见 `docs/ui-rewrite/06-phase6.md`。全局搜索框 + Ctrl+K 唤起 + 筛选条件。注意 P5 后端变更约束：P6 起除非再次获准，否则不改 `web.py`。
-3. 完成后 `git add -A && git commit && git push origin rewrite`，并更新该阶段 doc 影响文件/回测/实现项 + 本 HANDOFF。
-4. 之后 P6→P12 按 `docs/ui-rewrite/0X-phaseX.md` 顺序，每阶段 commit+push。
+2. **P6（搜索 + 筛选）✅ 已完成**：首页/`search.html` 高密度结果列表 + 无结果态 + `Ctrl+K`/`/` 唤起搜索（`ui.js` `focusSearch()` + `layout.html` body keydown）。后端未改。
+   - **未做**：筛选器 popover/bottom-sheet 重构（保留既有 `search_form.html` 高级搜索页）。
+3. **P7（书库导航）**：见 `docs/ui-rewrite/07-phase7.md`。作者 / 分类 / 标签 / 系列 / 书架。每阶段完成后更新 doc + HANDOFF，commit + push。
+4. 之后 P7→P12 按 `docs/ui-rewrite/0X-phaseX.md` 顺序，每阶段 commit+push。
 
 ## 5. 环境备忘
 - 构建：`cd /opt/calibre-stack/calibre-web && npm install && npm run build`（产物提交，VPS 运行期无需 Node；node_modules 已 gitignore）

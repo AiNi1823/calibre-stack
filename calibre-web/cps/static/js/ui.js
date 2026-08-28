@@ -14,5 +14,9 @@ document.addEventListener('alpine:init', function () {
     },
     openSidebar() { this.sidebarOpen = true; },
     closeSidebar() { this.sidebarOpen = false; },
+    focusSearch() {
+      const input = document.getElementById('query');
+      if (input) { input.focus(); input.select(); }
+    },
   });
 });

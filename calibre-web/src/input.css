@@ -237,6 +237,19 @@ html.dark {
   .cw-home__reading .cw-book-cover { @apply rounded-4; }
   .cw-home__reading-meta { @apply flex flex-col gap-0.5 px-0.5; }
 
+  /* ============ P6: Search results ============ */
+  .cw-search__noresult svg { @apply mb-1; }
+  .cw-section-title { @apply text-lg font-semibold text-textPrimary; }
+  .cw-result-list { @apply flex flex-col gap-2; list-style: none; padding: 0; margin: 0; }
+  .cw-result-item {
+    @apply flex items-center gap-3 rounded-4 border border-surfaceSecondary bg-surface p-2;
+  }
+  .cw-result-item__cover { @apply h-24 w-16 shrink-0 overflow-hidden rounded-4; }
+  .cw-result-item__cover img { @apply h-full w-full object-cover; }
+  .cw-result-item__body { @apply flex min-w-0 flex-col gap-0.5; }
+  .cw-result-item__summary { @apply line-clamp-2 text-sm text-textMuted; }
+  .cw-book-series { @apply text-sm text-textMuted; }
+
   /* ============ P1: Dropdown ============ */
   .cw-dropdown { @apply relative inline-block; }
   .cw-dropdown__menu {

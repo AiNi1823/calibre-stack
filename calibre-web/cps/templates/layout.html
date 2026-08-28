@@ -37,7 +37,7 @@
       })();
     </script>
   </head>
-  <body class="{{ page }} {{ bodyClass }}{% if g.current_theme == 1 %} blur{% endif %}" data-text="{{_('Home')}}" data-textback="{{_('Back')}}" x-data x-on:keydown.escape.window="$store.ui.closeSidebar()">
+  <body class="{{ page }} {{ bodyClass }}{% if g.current_theme == 1 %} blur{% endif %}" data-text="{{_('Home')}}" data-textback="{{_('Back')}}" x-data x-on:keydown.escape.window="$store.ui.closeSidebar()" x-on:keydown.ctrl.k.prevent.window="$store.ui.focusSearch()" x-on:keydown.slash.prevent.window="$store.ui.focusSearch()">
 
   <div class="cw-app">
     <aside class="cw-sidebar">

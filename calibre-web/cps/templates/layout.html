@@ -22,8 +22,22 @@
        <link href="{{ url_for('static', filename='css/caliBlur.css') }}" rel="stylesheet" media="screen">
        <link href="{{ url_for('static', filename='css/caliBlur_override.css') }}" rel="stylesheet" media="screen">
     {% endif %}
+    <!-- Tailwind CSS (UI Rewrite 主样式；与既有 Bootstrap 渐进共存，详见 docs/ui-rewrite) -->
+    <link href="{{ url_for('static', filename='css/tailwind.css') }}" rel="stylesheet" media="screen">
+    <!-- Lucide Icons -->
+    <script src="{{ url_for('static', filename='js/libs/lucide.min.js') }}" defer></script>
+    <!-- FOUC 保护：渲染前应用暗色 class -->
+    <script>
+      (function () {
+        try {
+          var s = localStorage.getItem('calibre-theme');
+          var dark = s === 'dark' || (!s && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        } catch (e) { var dark = false; }
+        if (dark) document.documentElement.classList.add('dark');
+      })();
+    </script>
   </head>
-  <body class="{{ page }} {{ bodyClass }}{% if g.current_theme == 1 %} blur{% endif %}" data-text="{{_('Home')}}" data-textback="{{_('Back')}}">
+  <body class="{{ page }} {{ bodyClass }}{% if g.current_theme == 1 %} blur{% endif %}" data-text="{{_('Home')}}" data-textback="{{_('Back')}}" x-data x-on:keydown.escape.window="$store.ui.closeSidebar()">
     <!-- Static navbar -->
     <div class="navbar navbar-default navbar-static-top" role="navigation">
       <div class="container-fluid">
@@ -223,6 +237,10 @@
       <script src="{{ url_for('static', filename='js/libs/readmore.min.js') }}"></script>
       <script src="{{ url_for('static', filename='js/caliBlur.js') }}"></script>
     {% endif %}
+    <!-- UI Rewrite (Phase 0) 轻量交互层：Alpine + 主题 + 图标初始化 -->
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/libs/alpine.min.js') }}" defer></script>
     {% block js %}{% endblock %}
   </body>
 </html>

@@ -17,6 +17,8 @@
 - `f8cf47f` P2 App Shell：`layout.html` 重写为 App Shell（Sidebar/Drawer/Header/搜索/主题切换/账户菜单）+ doc（**无 `base.html`**，App Shell 内聚在 `layout.html`）
 - `bf5d649` **P3 Library**：`index.html` 书卡重皮肤（`cw-book-card` 响应式网格 + `cw-status-badge` 未读/在读/已读，`entry[2]` read_status 驱动）+ 文档更新
 - `73091b8` **P4 Book Detail**：`detail.html` 重皮肤（`cw-detail__layout` 封面居左/元数据居右 + 操作栏 `cw-btn-*` + 封面状态徽章 已读/未读；保留全部 id/表单/`data-*` 钩子保 `details.js`/`main.js`/`fullscreen.js` 行为）+ 文档更新
+- `bb2283b` **P7 Library navigation**：`list.html` 首字母导航列表重皮肤（`cw-nav-item` 名称+数量徽章，保留 `filter_list.js` 钩子）+ `author.html`/`shelf.html` 书卡改 `cw-book-card`
+- `P8` **Batch** ✅ 详见 `docs/ui-rewrite/08-phase8.md`（见下 §4 描述）
 
 ## 2. P3 范围裁定（会话确认，勿回退）
 - 带封面书库网格实际渲染在 `index.html`（各库路由均 render 它）；`grid.html`/`list.html` 是作者/系列/标签的**首字母浏览视图**（无封面、无 Grid⇄List 切换）→ **归 P7**。
@@ -41,8 +43,13 @@
 2. **P6（搜索 + 筛选）✅ 已完成**：首页/`search.html` 高密度结果列表 + 无结果态 + `Ctrl+K`/`/` 唤起搜索（`ui.js` `focusSearch()` + `layout.html` body keydown）。后端未改。
    - **未做**：筛选器 popover/bottom-sheet 重构（保留既有 `search_form.html` 高级搜索页）。
 3. **P7（书库导航）✅ 已完成**：导航列表共用 `list.html` 重皮肤（`.cw-nav-item` 名称+数量徽章，保留 `filter_list.js` 全部钩子）+ `author.html`/`shelf.html` 书卡网格改 `cw-book-card` + `cw-author-bio`。后端未改。
-4. **P8（Batch）**：见 `docs/ui-rewrite/08-phase8.md`。书库/导航页批量选择 + 批量操作栏。每阶段完成后更新 doc + HANDOFF，commit + push。
-5. 之后 P8→P12 按 `docs/ui-rewrite/0X-phaseX.md` 顺序，每阶段 commit+push。
+4. **P8（Batch）✅ 已完成**：书库网格（`index.html`）书卡加复选框 + 底部批量操作栏（改标签/改系列/改作者/删除，复用既有 JSON 端点，不改后端）。
+   - 新文件：`cps/templates/include/_batch-action-bar.html`、`cps/static/js/batch.js`（`calibreBatch()` Alpine 组件）；`index.html` 加 `x-data` 包裹 + `batch-checkbox` + `{% block js %}` 加载。
+   - 样式：`src/input.css` 新增 `.batch-checkbox`/`.cw-batch-bar*`/`.cw-book-card--selectable`/`.cw-batch-grid`。
+   - 冒烟：`/tmp/opencode/smoke_batch.py`（index.html render OK，全部 marker 通过）。
+   - **偏差记录**：批量端点均为 JSON，故用 fetch 走既有 `edit-book.edit_list_book`/`delete_books_ajax`（非"表单提交"）；下载批量/收藏(书架) 后端无多书端点，暂缓 P10。
+5. **P9（Auth + Admin）**：见 `docs/ui-rewrite/09-phase9.md`。后台表格复用 P8 批量选择逻辑（`table.js` 已有 `mass_selection` 模式）。每阶段完成后更新 doc + HANDOFF，commit + push。
+6. 之后 P10→P12 按 `docs/ui-rewrite/0X-phaseX.md` 顺序，每阶段 commit+push。
 
 ## 5. 环境备忘
 - 构建：`cd /opt/calibre-stack/calibre-web && npm install && npm run build`（产物提交，VPS 运行期无需 Node；node_modules 已 gitignore）

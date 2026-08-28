@@ -335,3 +335,30 @@ html.dark {
   }
 
   .cw-page-header { @apply mb-4 md:mb-6; }
+
+  /* ============ P8: Batch selection + action bar ============ */
+  .cw-book-card--selectable { @apply relative; }
+  .batch-checkbox {
+    @apply absolute left-2 top-2 z-20 h-4 w-4 cursor-pointer rounded border border-textSecondary
+           bg-surface shadow-sm checked:bg-primary checked:border-primary
+           focus:outline-none focus:ring-2 focus:ring-primary/40;
+  }
+  .cw-batch-grid { @apply pb-24; }
+
+  .cw-batch-bar { @apply fixed inset-x-0 bottom-0 z-50; }
+  .cw-batch-bar__backdrop { @apply fixed inset-0 -z-10 bg-black/20; }
+  .cw-batch-bar__panel {
+    @apply mx-auto mb-3 max-w-3xl rounded-6 border border-border bg-surface px-4 py-3
+           shadow-lg shadow-black/20 dark:shadow-black/50;
+  }
+  .cw-batch-bar__meta { @apply mb-2 flex flex-wrap items-center gap-2; }
+  .cw-batch-bar__count { @apply mr-1 text-sm font-medium text-textPrimary; }
+  .cw-batch-bar__count strong { @apply text-primary; }
+  .cw-batch-bar__actions { @apply flex flex-wrap items-center gap-2; }
+  .cw-batch-bar__kind { @apply w-auto min-w-[8rem]; }
+  .cw-batch-bar__value { @apply w-auto min-w-[10rem] flex-1; }
+  .cw-batch-bar__confirm { @apply inline-flex items-center gap-2 text-sm text-textPrimary; }
+  .cw-batch-bar__feedback { @apply mt-2 text-sm; }
+  .cw-batch-bar__feedback--ok { @apply text-success; }
+  .cw-batch-bar__feedback--error { @apply text-danger; }
+  .cw-btn--danger:disabled, .cw-btn--primary:disabled { @apply opacity-50; }

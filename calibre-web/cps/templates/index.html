@@ -130,9 +130,12 @@
   <h2 class="cw-section-title mb-2">{{_('Recently Added')}}</h2>
   {% endif %}
   {% if entries[0] %}
-  <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+  <div x-data="calibreBatch('{{ url_for('edit-book.edit_list_book', param='') }}', '{{ url_for('edit-book.delete_books_ajax') }}')">
+  <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 cw-batch-grid">
     {% for entry in entries %}
-    <article class="cw-book-card session" id="books">
+    <article class="cw-book-card cw-book-card--selectable session" id="books">
+      <input type="checkbox" class="batch-checkbox" value="{{ entry.Books.id }}"
+             x-model="selected" x-cloak aria-label="{{_('Select')}}: {{ entry.Books.title }}">
       <a class="cw-book-cover block" href="{{ url_for('web.show_book', book_id=entry.Books.id) }}" {% if simple==false %}data-toggle="modal" data-target="#bookDetailsModal" data-remote="false"{% endif %}>
           <span class="block h-full w-full" title="{{ entry.Books.title }}">
             {{ image.book_cover(entry.Books) }}
@@ -186,6 +189,14 @@
     </article>
     {% endfor %}
   </div>
+  {% include 'include/_batch-action-bar.html' %}
+  </div>
   {% endif %}
 </div>
+{% endblock %}
+{% block js %}
+<script src="{{ url_for('static', filename='js/batch.js') }}"></script>
+<script>
+  window.calibreBatchT = { ok: "{{_('Changes applied')}}", fail: "{{_('Request failed')}}", empty: "{{_('Enter a value')}}", deleted: "{{_('Books deleted')}}" };
+</script>
 {% endblock %}

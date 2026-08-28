@@ -59,8 +59,11 @@
 7. **P11（A11y + Performance Audit）✅ 已完成（Code hard-fixes only）**：前端代码硬修复——唯一 `<h1>`+无跳级（index/search/author/shelf/detail/login/register）、移动 Drawer 焦点管理（`ui.js`）+`role="dialog"`/`aria-modal`、汉堡 `aria-expanded`/`aria-controls`、下拉 `role="menu"`/`menuitem`/`aria-haspopup`、OAuth 链接 `aria-label`+SVG `aria-hidden`；`loading="lazy"`/`prefers-reduced-motion`/`:focus-visible` 已在 P1 baseline 就位。后端未改；`tailwind.css` 无增量。
    - 校验：`node --check` + 6 组冒烟渲染全 OK + heading 静态校验 + `npm run build`。
    - **延后（§9 专项）**：Playwright + `@axe-core/playwright`、Lighthouse ≥90、1K/5K/10K 大书库基线 —— 缺测试基础设施，未实施；不阻塞 P12。
-8. **P12（Production Cutover）**：见 `docs/ui-rewrite/12-phase12.md`。全回归 + nginx `:8084` 切换 + 回滚预案。每阶段完成后更新 doc + HANDOFF，commit + push。
-9. 之后 P12 按 `docs/ui-rewrite/12-phase12.md`，commit + push。
+8. **P12（Production Cutover — Beta 8085 已完成；生产切产暂缓）**：见 `docs/ui-rewrite/12-phase12.md`。
+   - ✅ **已完成**：Beta 并行实例 `/opt/calibre-web-beta/`（venv 复制 + prod app.db 快照 + **fork 根 `cps/` 覆盖**到 `site-packages/calibreweb/cps/` + app.db 端口改 8085）+ systemd 单元 `calibre-web-beta.service`（8085）+ 一键重搭脚本 `deploy/setup-beta.sh`。curl 验证 `127.0.0.1:8085` 登录页含新 UI（`cw-auth__card`/`cw-input`/`tailwind.css` 39282B），生产 8083 旧 UI 未受影响。
+   - **打包缺陷（重要）**：fork `pyproject.toml`/`MANIFEST.in` 仍指上游 `src/calibreweb` 布局，本 fork 实为根 `cps/`→`pip install` 产出**空 wheel**。因此 Beta 用「直接覆盖根 `cps/`」部署；**真实切产前必须先修复 pyproject 打包**（`[tool.setuptools] packages + package-data`）。
+   - **生产切产（8084/8083 上新 fork）暂缓**，待独立审批后执行（步骤见 12-phase12.md §2）。
+9. 之后 P12 生产切产按 `docs/ui-rewrite/12-phase12.md` §2，commit + push。
 
 ## 5. 环境备忘
 - 构建：`cd /opt/calibre-stack/calibre-web && npm install && npm run build`（产物提交，VPS 运行期无需 Node；node_modules 已 gitignore）

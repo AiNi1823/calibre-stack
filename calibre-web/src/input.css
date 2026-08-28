@@ -271,6 +271,21 @@ html.dark {
   }
   .cw-author-bio .author-photo { @apply mr-3 h-24 w-20 rounded-4 object-cover; }
 
+  /* ============ P9: Auth (login / register) ============ */
+  .cw-field-label { @apply text-sm font-medium text-textSecondary; }
+  .cw-auth { @apply mx-auto flex w-full max-w-md flex-col; }
+  .cw-auth__card {
+    @apply flex flex-col gap-4 rounded-6 border border-surfaceSecondary bg-surface p-6 shadow-sm;
+  }
+  .cw-auth__title { @apply text-xl font-semibold text-textPrimary; }
+  .cw-auth__error {
+    @apply rounded-4 border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger;
+  }
+  .cw-auth__oauth {
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-4 border border-surfaceSecondary
+           bg-surfaceSecondary/40 text-textPrimary transition-colors duration-100 hover:bg-surfaceSecondary;
+  }
+
   /* ============ P1: Dropdown ============ */
   .cw-dropdown { @apply relative inline-block; }
   .cw-dropdown__menu {

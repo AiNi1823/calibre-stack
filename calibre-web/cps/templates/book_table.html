@@ -49,7 +49,7 @@
 <link href="{{ url_for('static', filename='css/libs/bootstrap-wysihtml5-0.0.3.css') }}" rel="stylesheet">
 {% endblock %}
 {% block body %}
-<h2 class="{{page}}">{{_(title)}}</h2>
+<h2 class="cw-section-title {{page}}">{{_(title)}}</h2>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="col-xs-12 col-sm-6">
         <div class="row form-group">
@@ -78,7 +78,7 @@
       </div>
     </div>
 
-    <table id="books-table" class="table table-no-bordered table-striped"
+    <table id="books-table" class="table table-no-bordered table-striped cw-table"
            data-url="{{url_for('web.list_books')}}" data-locale="{{ current_user.locale }}">
       <thead>
         <tr>

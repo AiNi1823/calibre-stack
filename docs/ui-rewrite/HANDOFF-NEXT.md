@@ -48,8 +48,12 @@
    - 样式：`src/input.css` 新增 `.batch-checkbox`/`.cw-batch-bar*`/`.cw-book-card--selectable`/`.cw-batch-grid`。
    - 冒烟：`/tmp/opencode/smoke_batch.py`（index.html render OK，全部 marker 通过）。
    - **偏差记录**：批量端点均为 JSON，故用 fetch 走既有 `edit-book.edit_list_book`/`delete_books_ajax`（非"表单提交"）；下载批量/收藏(书架) 后端无多书端点，暂缓 P10。
-5. **P9（Auth + Admin）**：见 `docs/ui-rewrite/09-phase9.md`。后台表格复用 P8 批量选择逻辑（`table.js` 已有 `mass_selection` 模式）。每阶段完成后更新 doc + HANDOFF，commit + push。
-6. 之后 P10→P12 按 `docs/ui-rewrite/0X-phaseX.md` 顺序，每阶段 commit+push。
+5. **P9（Auth + Admin）✅ 已完成**：登录/注册完整重皮肤（`.cw-auth__card` 居中卡片 + `.cw-auth__error` 错误态 + 保留全部 name/CSRF/submit/OAuth/忘记密码/魔法链接语义）；后台表格 `book_table.html`/`user_table.html` 叠加 `cw-table`/`cw-section-title`（不动 DataTable `<th data-*>` 结构）。后端未改。
+   - 样式：`src/input.css` 新增 `.cw-auth*`、`.cw-field-label`。
+   - 冒烟：`/tmp/opencode/smoke_auth.py`（login 含错误态 + register 全 marker OK）；`get_template` 编译 login/register/user_table/book_table 全通过。
+   - **偏差/延后**：`admin.html`/`config_edit.html` 深度改版因改动面大，留待专项（防会话冻结风险）。
+6. **P10（Custom Pages）**：见 `docs/ui-rewrite/10-phase10.md`。`/tasks`、`/async-upload` 自研页统一到同一 Design System。可顺带补 P9 延后的 `admin.html`/`config_edit.html`。每阶段完成后更新 doc + HANDOFF，commit + push。
+7. 之后 P10→P12 按 `docs/ui-rewrite/0X-phaseX.md` 顺序，每阶段 commit+push。
 
 ## 5. 环境备忘
 - 构建：`cd /opt/calibre-stack/calibre-web && npm install && npm run build`（产物提交，VPS 运行期无需 Node；node_modules 已 gitignore）

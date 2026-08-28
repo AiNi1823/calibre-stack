@@ -4,7 +4,7 @@
 {% if current_user.show_detail_random() and page != "discover" %}
 <div class="discover random-books">
   <h2 class="random-books">{{_('Discover (Random Books)')}}</h2>
-  <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+  <div class="cw-book-grid">
    {% for entry in random %}
     <article class="cw-book-card session" id="books_rand">
       <a class="cw-book-cover block" href="{{ url_for('web.show_book', book_id=entry.Books.id) }}" {% if simple==false %}data-toggle="modal" data-target="#bookDetailsModal" data-remote="false"{% endif %}>
@@ -106,22 +106,22 @@
 <div class="discover load-more">
   <h1 class="{{title}}">{{title}}</h1>
    {% if page != 'discover' %}
-    <div class="filterheader hidden-xs">
+    <div class="mb-4 hidden flex-wrap items-center gap-1 md:flex">
     {% if page == 'hot' %}
-      <a data-toggle="tooltip" title="{{_('Sort ascending according to download count')}}" id="hot_asc" class="btn btn-primary{% if order == "hotasc" %} active{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='hotasc')}}"><span class="glyphicon glyphicon-sort-by-order"></span></a>
-      <a data-toggle="tooltip" title="{{_('Sort descending according to download count')}}" id="hot_desc" class="btn btn-primary{% if order == "hotdesc" %} active{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='hotdesc')}}"><span class="glyphicon glyphicon-sort-by-order-alt"></span></a>
+      <a title="{{_('Sort ascending according to download count')}}" id="hot_asc" class="cw-btn cw-btn--ghost cw-btn--sm{% if order == "hotasc" %} cw-btn--primary{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='hotasc')}}">{{_('Asc')}}</a>
+      <a title="{{_('Sort descending according to download count')}}" id="hot_desc" class="cw-btn cw-btn--ghost cw-btn--sm{% if order == "hotdesc" %} cw-btn--primary{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='hotdesc')}}">{{_('Desc')}}</a>
     {% else %}
-      <a data-toggle="tooltip" title="{{_('Sort according to book date, newest first')}}" id="new" class="btn btn-primary{% if order == "new" %} active{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='new')}}"><span class="glyphicon glyphicon-book"></span> <span class="glyphicon glyphicon-calendar"></span><span class="glyphicon glyphicon-sort-by-order"></span></a>
-      <a data-toggle="tooltip" title="{{_('Sort according to book date, oldest first')}}" id="old" class="btn btn-primary{% if order == "old" %} active{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='old')}}"><span class="glyphicon glyphicon-book"></span> <span class="glyphicon glyphicon-calendar"></span><span class="glyphicon glyphicon-sort-by-order-alt"></span></a>
-      <a data-toggle="tooltip" title="{{_('Sort title in alphabetical order')}}" id="asc" class="btn btn-primary{% if order == "abc" %} active{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='abc')}}"><span class="glyphicon glyphicon-font"></span><span class="glyphicon glyphicon-sort-by-alphabet"></span></a>
-      <a data-toggle="tooltip" title="{{_('Sort title in reverse alphabetical order')}}" id="desc" class="btn btn-primary{% if order == "zyx" %} active{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='zyx')}}"><span class="glyphicon glyphicon-font"></span><span class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a>
-      <a data-toggle="tooltip" title="{{_('Sort authors in alphabetical order')}}" id="auth_az" class="btn btn-primary{% if order == "authaz" %} active{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='authaz')}}"><span class="glyphicon glyphicon-user"></span><span class="glyphicon glyphicon-sort-by-alphabet"></span></a>
-      <a data-toggle="tooltip" title="{{_('Sort authors in reverse alphabetical order')}}" id="auth_za" class="btn btn-primary{% if order == "authza" %} active{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='authza')}}"><span class="glyphicon glyphicon-user"></span><span class="glyphicon glyphicon-sort-by-alphabet-alt"></span></a>
-      <a data-toggle="tooltip" title="{{_('Sort according to publishing date, newest first')}}" id="pub_new" class="btn btn-primary{% if order == "pubnew" %} active{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='pubnew')}}"><span class="glyphicon glyphicon-calendar"></span><span class="glyphicon glyphicon-sort-by-order"></span></a>
-      <a data-toggle="tooltip" title="{{_('Sort according to publishing date, oldest first')}}" id="pub_old" class="btn btn-primary{% if order == "pubold" %} active{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='pubold')}}"><span class="glyphicon glyphicon-calendar"></span><span class="glyphicon glyphicon-sort-by-order-alt"></span></a>
+      <a title="{{_('Sort according to book date, newest first')}}" id="new" class="cw-btn cw-btn--ghost cw-btn--sm{% if order == "new" %} cw-btn--primary{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='new')}}">{{_('New')}}</a>
+      <a title="{{_('Sort according to book date, oldest first')}}" id="old" class="cw-btn cw-btn--ghost cw-btn--sm{% if order == "old" %} cw-btn--primary{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='old')}}">{{_('Old')}}</a>
+      <a title="{{_('Sort title in alphabetical order')}}" id="asc" class="cw-btn cw-btn--ghost cw-btn--sm{% if order == "abc" %} cw-btn--primary{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='abc')}}">{{_('Title A-Z')}}</a>
+      <a title="{{_('Sort title in reverse alphabetical order')}}" id="desc" class="cw-btn cw-btn--ghost cw-btn--sm{% if order == "zyx" %} cw-btn--primary{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='zyx')}}">{{_('Title Z-A')}}</a>
+      <a title="{{_('Sort authors in alphabetical order')}}" id="auth_az" class="cw-btn cw-btn--ghost cw-btn--sm{% if order == "authaz" %} cw-btn--primary{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='authaz')}}">{{_('Author A-Z')}}</a>
+      <a title="{{_('Sort authors in reverse alphabetical order')}}" id="auth_za" class="cw-btn cw-btn--ghost cw-btn--sm{% if order == "authza" %} cw-btn--primary{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='authza')}}">{{_('Author Z-A')}}</a>
+      <a title="{{_('Sort according to publishing date, newest first')}}" id="pub_new" class="cw-btn cw-btn--ghost cw-btn--sm{% if order == "pubnew" %} cw-btn--primary{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='pubnew')}}">{{_('Pub New')}}</a>
+      <a title="{{_('Sort according to publishing date, oldest first')}}" id="pub_old" class="cw-btn cw-btn--ghost cw-btn--sm{% if order == "pubold" %} cw-btn--primary{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='pubold')}}">{{_('Pub Old')}}</a>
       {% if page == 'series' %}
-      <a data-toggle="tooltip" title="{{_('Sort ascending according to series index')}}" id="series_asc" class="btn btn-primary{% if order == "seriesasc" %} active{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='seriesasc')}}"><span class="glyphicon glyphicon-sort-by-order"></span></a>
-      <a data-toggle="tooltip" title="{{_('Sort descending according to series index')}}" id="series_desc" class="btn btn-primary{% if order == "seriesdesc" %} active{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='seriesdesc')}}"><span class="glyphicon glyphicon-sort-by-order-alt"></span></a>
+      <a title="{{_('Sort ascending according to series index')}}" id="series_asc" class="cw-btn cw-btn--ghost cw-btn--sm{% if order == "seriesasc" %} cw-btn--primary{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='seriesasc')}}">{{_('Series Asc')}}</a>
+      <a title="{{_('Sort descending according to series index')}}" id="series_desc" class="cw-btn cw-btn--ghost cw-btn--sm{% if order == "seriesdesc" %} cw-btn--primary{% endif%}" href="{{url_for('web.books_list', data=page, book_id=id, sort_param='seriesdesc')}}">{{_('Series Desc')}}</a>
       {% endif %}
     {% endif %}
     </div>
@@ -131,7 +131,7 @@
   {% endif %}
   {% if entries[0] %}
   <div x-data="calibreBatch('{{ url_for('edit-book.edit_list_book', param='') }}', '{{ url_for('edit-book.delete_books_ajax') }}')">
-  <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 cw-batch-grid">
+  <div class="cw-book-grid cw-batch-grid">
     {% for entry in entries %}
     <article class="cw-book-card cw-book-card--selectable session" id="books">
       <input type="checkbox" class="batch-checkbox" value="{{ entry.Books.id }}"
@@ -163,7 +163,9 @@
             {% endif %}
           {% endfor %}
           {% if entry.Books.data|music %}
-            <span class="glyphicon glyphicon-music"></span>
+            <span class="cw-book-music" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </span>
           {% endif %}
         </p>
         {% if entry.Books.series.__len__() > 0 %}

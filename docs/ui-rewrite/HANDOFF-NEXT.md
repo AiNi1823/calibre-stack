@@ -5,10 +5,25 @@
 > 施工对象：vendored 源码树 `calibre-web/`（Calibre-Web 0.6.27）。
 > 约束：后端 `web.py/db.py/helper.py` 不改；UI 渐进迁移；每阶段 commit+push。
 
+## 0. 当前施工方向 = P13（UI Consistency & UX Stabilization Pass）
+> 已停用「按 Phase 序号逐个新增」；转为 **统一收口**：让全站像同一个电子书产品。
+> 完整指令见 `docs/ui-rewrite/13-phase13-consistency.md`。本基线的 P0–P12 已完成，见 §1。
+
 ## 0. 会话卡死根因（重要）
 `big-pickle` 模型在**超长上下文**（尤其大段 Python 拼接模板 + 反复调试文本）下生成退化、死循环，无报错、连接不断、静默 30 分钟级。
 - **对策**：保持**极简、单步 bash 收尾**，不要一次性输出大段文本/并行巨调用。
 - 若再卡：`tail -f /root/.local/share/opencode/log/opencode.log`。
+
+## 0b. P13 施工进度（UI Consistency Pass）
+已完成（Batch 1，commit 见 §1 顶部）：
+- `index.html` 收口：Bootstrap 排序条 → `cw-btn--ghost/sm` + 文案（保留全部 id/order/sort_param）；`glyphicon-music` → Lucide；书库网格 → 自适应 `cw-book-grid`（auto-fill minmax(150px,1fr)）；`layout.html` 修复「奇怪代码」——补全 `#bookDetailsModal` 的 `<div class="modal fade">` 开标签（原为裸 `aria-labelledby` 破损片段）。
+- `admin.html` 完整重写：`container-fluid/row/col` → `cw-card` 分节；`table table-striped` → `cw-table`（thead/tbody 结构）；`btn btn-default` → `cw-btn--secondary/danger`；glyphicon 布尔 → `cw-status-badge 是/否`；保留全部 JS 钩子 id。
+- `config_edit.html` 完整重写：Bootstrap `panel-group/panel` 手风琴 → `cw-card + panel-collapse`（保留 Bootstrap collapse 手风琴机制与 `data-toggle="collapse"`）；`form-control` → `cw-input/cw-select`；`btn btn-default` → `cw-btn`；glyphicon folder-open → Lucide；保留全部 `name/id/data-control/data-related/data-controlall/intend-form`。**已用 feature 全开渲染校验所有字段保留。**
+- `src/input.css`：新增 `.cw-book-grid`；`.cw-main__inner` 加 `max-width:1440px; margin:auto`（content 统一限宽）。
+
+**保留的 legacy**（勿动，非本轮范围）：`modal_dialogs.html`（Bootstrap modal 体系，jQuery 驱动）、admin.html 内 `RestartDialog/ShutdownDialog/StatusDialog`、`filechooser_modal()`、`user_table/book_table` 的 Bootstrap-Table 插件、`book_edit/user_edit/config_db/grid.html`（仍旧）。
+
+**待做（P13 未完）**：`book_edit/user_edit/config_db/grid.html` 收口；首页「我的收藏」区块（需书架数据）；全站截图为验收（Playwright 暂缺）；`modal_dialogs.html` Alpine 化需先退 legacy JS（大工程，谨慎）。
 
 ## 1. 已提交 && 已推送（origin/rewrite）—— P0/P1/P2/P3 全部完成
 - `d44bccd` P0 基线：vendored `calibre-web/` + Tailwind 链 + 主题/组件初版 + 旧 patch 归档

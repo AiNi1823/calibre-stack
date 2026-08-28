@@ -156,6 +156,14 @@ html.dark {
     @apply flex flex-col gap-2 rounded-6 bg-surface p-2
            transition-shadow duration-100 hover:shadow-md dark:shadow-black/40;
   }
+
+  /* P13: 书库自适应网格（信息密度优先，宽屏不放大封面）
+     桌面 5-8 列由 auto-fill 自适应；外层 content 限宽 1440px。 */
+  .cw-book-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
   .cw-book-cover {
     @apply aspect-[2/3] w-full overflow-hidden rounded-4 bg-surfaceSecondary;
   }
@@ -342,7 +350,10 @@ html.dark {
   .cw-sidebar__head { @apply px-4 py-3 text-xs font-semibold uppercase tracking-wide text-textSecondary; }
 
   .cw-main { @apply flex-1 min-w-0; }
-  .cw-main__inner { @apply px-4 py-4 md:px-6 md:py-6 lg:px-8; }
+  .cw-main__inner {
+    @apply px-4 py-4 md:px-6 md:py-6 lg:px-8 mx-auto w-full;
+    max-width: 1440px;
+  }
 
   .cw-header {
     @apply sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border

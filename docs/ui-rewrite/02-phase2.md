@@ -11,12 +11,13 @@
 - 所有子页面通过继承 `layout.html` 自动获得一致外壳，`dark` / `sidebarOpen` 状态跨页共享
 
 ## 1. 影响项目文件
-- **Fork 内**：
-  - `cps/templates/layout.html`（完整重写为 App Shell：Sidebar + Header + Drawer + 内容区）
-  - `cps/templates/base.html`（保持 `{% extends "layout.html" %}` 与根 `x-data` 状态：`dark`、`sidebarOpen`）
-  - `cps/templates/include/_sidebar.html`（新增：导航项组件，含 aria 与选中态）
-  - `cps/templates/include/_header.html`（新增：顶部栏，含搜索、主题切换、账户菜单）
-  - `cps/static/css/tailwind.config.js` / `input.css`（App Shell 相关工具类：`.sidebar`、`.drawer`、`.header-bar`）
+- **Fork 内（已实现 @ f8cf47f）**：
+  - `cps/templates/layout.html`（完整重写为 App Shell：Sidebar + Header + Drawer + 内容区）——**本 fork 无 `base.html`**，App Shell 及根 `x-data` 状态全部内聚在 `layout.html`
+  - `cps/static/css/input.css`（App Shell 相关 `@apply` 原语与工具类：`cw-sidebar`、`cw-sidebar--drawer`、`cw-sidebar__head`、`cw-header`、`cw-page-header`、`cw-search--flex`、`x-cloak`）
+  - `cps/static/css/tailwind.css`（`npm run build` 编译产物，~27KB）
+- **未采用/说明**：
+  - 本 fork 无 `cps/templates/base.html`；App Shell 落在 `layout.html` 一处（消解原计划的 `base.html`/`layout.html` 拆分）
+  - 未新增 `_sidebar.html`/`_header.html` include —— 侧栏/顶栏直接内联在 `layout.html`（渐进迁移，避免过度拆分）
 
 - **calibre-stack（暂不涉及，P10 处理）**：
   - `async-upload/tasks_page.html`、`upload_page.html`
@@ -44,13 +45,14 @@
 - `dark` 状态持久化（localStorage）并在所有子页面保持一致
 
 ## 4. 回测方法
-1. **本地构建**：`npm install && npx tailwindcss -i ./cps/static/css/input.css -o ./cps/static/css/tailwind.css`
-2. **浏览器/Playwright 分端验证**：
+1. **本地构建**：`npm run build`（`npx tailwindcss -i ./cps/static/css/input.css -o ./cps/static/css/tailwind.css` + 校验产物字节数）
+2. **渲染冒烟**：Jinja 直接 render `layout.html`（stub 补 `g.allow_upload=True`），断言关键节点存在：`/static/css/tailwind.css`、`alpine.min.js`、`js/theme.js`、`lucide.min.js`、`id="query"`、`id="form-upload"`、`id="btn-upload"`、`toggleDark()`、`sidebarOpen`、`cw-sidebar`、`cw-sidebar--drawer`
+3. **浏览器/Playwright 分端验证**：
    - Desktop（≥1200px）：Sidebar 常驻，Header 搜索/主题/账户可用
    - Tablet（768–1199px）与 Mobile（<768px）：Sidebar 折叠，汉堡打开 Drawer，遮罩点击 / `Esc` 关闭
    - 主题切换在任意子页面生效且状态跨页保持
    - `Ctrl+K` 唤起搜索框焦点
-3. **无控制台 JS 错误**（Alpine 未定义变量等）
+4. **无控制台 JS 错误**（Alpine 未定义变量等）
 
 ## 5. 推进标准（进入 P3 的门禁）
 - 桌面/平板/移动三端外壳布局正确，无断层

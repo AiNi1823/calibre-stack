@@ -163,9 +163,18 @@ html.dark {
     @apply h-full w-full object-cover transition-transform duration-100;
   }
   .cw-book-cover:hover img { @apply scale-105; }
+  .cw-book-card__meta { @apply flex flex-col gap-0.5 px-1 pb-1; }
   .cw-book-title { @apply line-clamp-1 text-sm font-medium text-textPrimary; }
   .cw-book-author { @apply line-clamp-1 text-xs text-textSecondary; }
   .cw-book-meta { @apply flex items-center gap-1 text-xs text-textMuted; }
+
+  /* ============ P3: Status badge（未读/在读/已读） ============ */
+  .cw-status-badge {
+    @apply mt-1 inline-flex w-fit items-center rounded px-1.5 py-0.5 text-[10px] font-medium leading-none;
+  }
+  .cw-status-badge--unread  { @apply bg-surfaceSecondary text-textSecondary; }
+  .cw-status-badge--reading { @apply bg-success/10 text-success; }
+  .cw-status-badge--finished{ @apply bg-primary/10 text-primary; }
 
   /* ============ P1: Table ============ */
   .cw-table { @apply w-full text-sm text-textPrimary; }

@@ -4,22 +4,19 @@
 {% if current_user.show_detail_random() and page != "discover" %}
 <div class="discover random-books">
   <h2 class="random-books">{{_('Discover (Random Books)')}}</h2>
-  <div class="row display-flex">
+  <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
    {% for entry in random %}
-    <div class="col-sm-3 col-lg-2 col-xs-6 book session" id="books_rand">
-      <div class="cover">
-          <a href="{{ url_for('web.show_book', book_id=entry.Books.id) }}" {% if simple==false %}data-toggle="modal" data-target="#bookDetailsModal" data-remote="false"{% endif %}>
-              <span class="img" title="{{ entry.Books.title }}">
-                {{ image.book_cover(entry.Books) }}
-                {% if entry[2] == True %}<span class="badge read glyphicon glyphicon-ok"></span>{% endif %}
-              </span>
-          </a>
-      </div>
-      <div class="meta">
+    <article class="cw-book-card session" id="books_rand">
+      <a class="cw-book-cover block" href="{{ url_for('web.show_book', book_id=entry.Books.id) }}" {% if simple==false %}data-toggle="modal" data-target="#bookDetailsModal" data-remote="false"{% endif %}>
+          <span class="block h-full w-full" title="{{ entry.Books.title }}">
+            {{ image.book_cover(entry.Books) }}
+          </span>
+      </a>
+      <div class="cw-book-card__meta">
         <a href="{{ url_for('web.show_book', book_id=entry.Books.id) }}" {% if simple==false %}data-toggle="modal" data-target="#bookDetailsModal" data-remote="false"{% endif %}>
-          <p title="{{entry.Books.title}}" class="title">{{entry.Books.title|shortentitle}}</p>
+          <p title="{{entry.Books.title}}" class="cw-book-title">{{entry.Books.title|shortentitle}}</p>
         </a>
-        <p class="author">
+        <p class="cw-book-author">
           {% for author in entry.Books.authors %}
             {% if loop.index > g.config_authors_max and g.config_authors_max != 0 %}
               {% if not loop.first %}
@@ -38,27 +35,22 @@
           {% endfor %}
         </p>
         {% if entry.Books.series.__len__() > 0 %}
-        <p class="series">
+        <p class="cw-book-meta">
           <a href="{{url_for('web.books_list', data='series', sort_param='stored', book_id=entry.Books.series[0].id )}}">
             {{entry.Books.series[0].name}}
           </a>
           ({{entry.Books.series_index|formatfloat(2)}})
         </p>
         {% endif %}
-        {% if entry.Books.ratings.__len__() > 0 %}
-        <div class="rating">
-          {% for number in range((entry.Books.ratings[0].rating/2)|int(2)) %}
-            <span class="glyphicon glyphicon-star good"></span>
-            {% if loop.last and loop.index < 5 %}
-              {% for numer in range(5 - loop.index) %}
-                <span class="glyphicon glyphicon-star-empty"></span>
-              {% endfor %}
-            {% endif %}
-          {% endfor %}
-        </div>
+        {% if entry[2] == 2 %}
+        <span class="cw-status-badge cw-status-badge--reading">{{_('Reading')}}</span>
+        {% elif entry[2] == 1 %}
+        <span class="cw-status-badge cw-status-badge--finished">{{_('Read')}}</span>
+        {% else %}
+        <span class="cw-status-badge cw-status-badge--unread">{{_('Unread')}}</span>
         {% endif %}
       </div>
-    </div>
+    </article>
     {% endfor %}
   </div>
 </div>
@@ -86,23 +78,20 @@
     {% endif %}
     </div>
    {% endif %}
-  <div class="row display-flex">
-    {% if entries[0] %}
+  {% if entries[0] %}
+  <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
     {% for entry in entries %}
-    <div class="col-sm-3 col-lg-2 col-xs-6 book session" id="books">
-      <div class="cover">
-          <a href="{{ url_for('web.show_book', book_id=entry.Books.id) }}" {% if simple==false %}data-toggle="modal" data-target="#bookDetailsModal" data-remote="false"{% endif %}>
-            <span class="img" title="{{ entry.Books.title }}">
-              {{ image.book_cover(entry.Books) }}
-              {% if entry[2] == True %}<span class="badge read glyphicon glyphicon-ok"></span>{% endif %}
-            </span>
-          </a>
-      </div>
-      <div class="meta">
+    <article class="cw-book-card session" id="books">
+      <a class="cw-book-cover block" href="{{ url_for('web.show_book', book_id=entry.Books.id) }}" {% if simple==false %}data-toggle="modal" data-target="#bookDetailsModal" data-remote="false"{% endif %}>
+          <span class="block h-full w-full" title="{{ entry.Books.title }}">
+            {{ image.book_cover(entry.Books) }}
+          </span>
+      </a>
+      <div class="cw-book-card__meta">
         <a href="{{ url_for('web.show_book', book_id=entry.Books.id) }}" {% if simple==false %}data-toggle="modal" data-target="#bookDetailsModal" data-remote="false"{% endif %}>
-          <p title="{{ entry.Books.title }}" class="title">{{entry.Books.title|shortentitle}}</p>
+          <p title="{{ entry.Books.title }}" class="cw-book-title">{{entry.Books.title|shortentitle}}</p>
         </a>
-        <p class="author">
+        <p class="cw-book-author">
           {% for author in entry.Books.authors %}
             {% if loop.index > g.config_authors_max and g.config_authors_max != 0 %}
               {% if not loop.first %}
@@ -124,7 +113,7 @@
           {% endif %}
         </p>
         {% if entry.Books.series.__len__() > 0 %}
-        <p class="series">
+        <p class="cw-book-meta">
         {% if page != "series" %}
           <a href="{{url_for('web.books_list', data='series', sort_param='stored', book_id=entry.Books.series[0].id )}}">
             {{entry.Books.series[0].name}}
@@ -135,22 +124,17 @@
           ({{entry.Books.series_index|formatfloat(2)}})
         </p>
         {% endif %}
-        {% if entry.Books.ratings.__len__() > 0 %}
-        <div class="rating">
-          {% for number in range((entry.Books.ratings[0].rating/2)|int(2)) %}
-            <span class="glyphicon glyphicon-star good"></span>
-            {% if loop.last and loop.index < 5 %}
-              {% for numer in range(5 - loop.index) %}
-                <span class="glyphicon glyphicon-star-empty"></span>
-              {% endfor %}
-            {% endif %}
-          {% endfor %}
-        </div>
+        {% if entry[2] == 2 %}
+        <span class="cw-status-badge cw-status-badge--reading">{{_('Reading')}}</span>
+        {% elif entry[2] == 1 %}
+        <span class="cw-status-badge cw-status-badge--finished">{{_('Read')}}</span>
+        {% else %}
+        <span class="cw-status-badge cw-status-badge--unread">{{_('Unread')}}</span>
         {% endif %}
       </div>
-    </div>
+    </article>
     {% endfor %}
-  {% endif %}
   </div>
+  {% endif %}
 </div>
 {% endblock %}

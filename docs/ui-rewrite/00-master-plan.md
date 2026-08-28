@@ -72,31 +72,31 @@
 
 ---
 
-## 四、架构方案：fork 自维护模型
+## 四、架构方案：vendored 源码树（“施工现场”进仓库）
 
-### 4.1 仓库与分支
-- **fork**：`github.com/AiNi1823/calibre-web`（fork 自 `janeczku/calibre-web`，对齐 0.6.27）
-- **分支**：`ui-tailwind`（从对应 tag / master 切出）
-- **现有 `calibre-stack` 仓库**：不动主分支；仅新增 `docs/ui-rewrite/*` 规划与施工文档；自研页重皮肤在 `calibre-stack/async-upload/*.html`（独立阶段）
+> 本方案为**已定案**的 P0 基线。原「fork 自维护」方案（`AiNi1823/calibre-web` + `ui-tailwind` 分支）经实测：fork 仓库 404、`gh` 未装、且 patch 机理无法长期维护，故改为将源码树直接 vendored 进本仓库。
 
-### 4.2 前端技术栈（在 fork 内）
-- **Tailwind CSS**：新增 `package.json`（tailwindcss + postcss + autoprefixer）、`tailwind.config.js`、`src/input.css` → 构建产物 `cps/static/css/tailwind.css`（**提交构建产物**，VPS 运行期无需 Node）
+### 4.1 仓库与工作区
+- **源码树**：`calibre-stack/calibre-web/` = janeczku/calibre-web **0.6.27** 完整源码（`cps/` + 打包文件），并已并入现有自定义（迁移自旧 `deploy/*.patch` / 运行中的 site-packages）
+- **「施工现场」**：Agent 直接在 `calibre-web/cps/templates`、`cps/static` 等处改源码并纳入版本管理；不再是「打外部补丁」
+- **校验基线**：`calibre-web/cps/` 与运行中 `site-packages/calibreweb/cps` 源码**零差异**（排除第三方静态库/翻译）
+- **自研页**：`/tasks`、`/async-upload` HTML 在 `calibre-stack/async-upload/*.html`，同一 Design System
+
+### 4.2 前端技术栈（在 `calibre-web/` 内）
+- **Tailwind CSS**：新增 `package.json`（tailwindcss 3 + postcss + autoprefixer）、`tailwind.config.js`、`src/input.css` → 构建产物 `cps/static/css/tailwind.css`（**提交构建产物**，VPS 运行期无需 Node）
 - **Alpine.js**（≈15KB）：替换 jQuery / Bootstrap JS，承载 dropdown / drawer / modal / tabs / 批量选择等交互（SSR HTML 友好，无构建负担）；**保留** `uploadprogress.js` 核心逻辑（改为 Alpine 或保留精简版）
 - **Lucide**：静态 SVG / `lucide-static` 替换 Glyphicons
-- **设计令牌**：在 `tailwind.config.js` 定义 light/dark 调色板（沿用 prompt 的 `--background/--surface/--primary/...`）；暗色靠 `class="dark"` + CSS 变量
+- **设计令牌**：在 `tailwind.config.js` + `src/input.css` 定义 light/dark 调色板；暗色靠 `class="dark"` + CSS 变量
 - **不引入 React/Vue**：Calibre-Web 服务端渲染，shadcn 仅取其视觉语言，用纯 HTML + Tailwind 实现
 
-### 4.3 升级覆盖 / 重部署解决方案
-- **覆盖**：包即我们的 fork 代码。上游更新 = `git fetch upstream && merge` 进 fork `master`，再 rebase `ui-tailwind`。覆盖问题消失。
-- **重部署**：`pip install --force-reinstall --no-deps git+https://github.com/AiNi1823/calibre-web.git@ui-tailwind` → `systemctl restart calibre-web`
-- **nginx 不变**：`auth_request`、`/tasks`、`/api/upload` 路由 URL 不变（`/tasks`、`/api/upload` 由 async-upload:8086 提供，不在 fork 内）
+### 4.3 升级 / 重部署 / 排除补丁机制
+- **重部署**：`pip install --force-reinstall --no-deps ./calibre-web` → `systemctl restart calibre-web`
+- **上游更新**：`git fetch upstream && git merge upstream/<tag>`（在上层 `calibre-stack` 管理，`calibre-web/` 不嵌套 `.git`）
+- **旧 patch**：`deploy/*.patch` 已归档至 `deploy/patches-archive/*.legacy`，仅作历史备份，**不再是维护机制**
+- **nginx 不变**：`auth_request`、`/tasks`、`/api/upload` 路由 URL 不变（`/tasks`、`/api/upload` 由 async-upload:8086 提供）
 - **自研页**：`/tasks`、`/async-upload` HTML 在 `calibre-stack`，独立重皮肤
 
 ---
-
-## 四、架构方案：fork 自维护模型
-
-(保持原有内容不变)
 
 ## 五、Design System 前置（P1核心）
 

@@ -1,0 +1,15 @@
+{
+  "name": "calibre-web-ui",
+  "version": "0.6.27",
+  "description": "Calibre-Web UI (Tailwind rewrite) — vendored fork of janeczku/calibre-web@0.6.27 inside calibre-stack",
+  "private": true,
+  "scripts": {
+    "build": "tailwindcss -i ./src/input.css -o ./cps/static/css/tailwind.css --minify",
+    "watch": "tailwindcss -i ./src/input.css -o ./cps/static/css/tailwind.css --watch"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17"
+  }
+}

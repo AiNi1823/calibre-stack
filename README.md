@@ -10,9 +10,10 @@
 
 | 组件 | 说明 | 运行方式 |
 |------|------|----------|
+| [calibre-web](calibre-web/) | **Calibre-Web 0.6.27 源码树（vendored）**：可编辑、可版本控制的 UI「施工现场」。含 `cps/templates`、`cps/static`、Tailwind 构建链与设计令牌 | pip 从本目录安装；UI 在此直接改造 |
 | [metadata-tool](metadata-tool/) | 从豆瓣 / Open Library 自动补全书籍元数据（ISBN、出版日期、简介、封面） | CLI 手动/cron |
 | [async-upload](async-upload/) | HTTP 异步上传服务：立即返回 → 后台 `calibredb add` 入库；含任务看板 `/tasks` 与 `task_store.py` | systemd 常驻 |
-| [deploy](deploy/) | nginx 配置、systemd 单元、部署脚本 | — |
+| [deploy](deploy/) | nginx 配置、systemd 单元、部署脚本；旧 `.patch` 归档于 `patches-archive/*.legacy` | — |
 
 ## 架构
 
@@ -48,6 +49,22 @@ python3 main.py --covers-only  # 仅补全缺失封面
 ```
 
 代理、数据源、字段规则等在 `metadata-tool/config.yaml` 中配置。
+
+## UI 开发（施工现场）
+
+UI 升级在 **vendored `calibre-web/` 源码树**内直接施工（替代旧的 patch 模型），方案见 [docs/ui-rewrite/00-master-plan.md](docs/ui-rewrite/00-master-plan.md)。
+
+```bash
+cd calibre-web
+npm install        # 一次性开发依赖
+npm run build      # 生成 cps/static/css/tailwind.css（提交产物）
+# 编辑 cps/templates/*.html、cps/static/、src/input.css、tailwind.config.js
+# 部署：pip install --force-reinstall --no-deps ./calibre-web
+```
+
+- 阶段文档：`docs/ui-rewrite/0X-phaseX.md`（P0 基线 → P1 Design System → … → P12 上线）
+- Tailwind / 令牌 / 断点 / 暗色：见 `calibre-web/tailwind.config.js` 与 `calibre-web/src/input.css`
+- 旧 patch 机理的说明与归档：`calibre-web/README.calibre-stack.md`、`deploy/patches-archive/`
 
 ## 文档
 

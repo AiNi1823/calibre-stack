@@ -39,6 +39,9 @@ html.dark {
   outline-offset: 2px;
 }
 
+/* Alpine.js：渲染前隐藏带 x-cloak 的元素，避免闪烁 */
+[x-cloak] { display: none !important; }
+
 /* 尊重减少动画偏好 */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -97,6 +100,8 @@ html.dark {
     @apply absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-textMuted pointer-events-none;
   }
   .cw-search > .cw-input { @apply pl-8; }
+  .cw-search--flex { @apply hidden w-64 min-w-0 md:block; }
+  .cw-search--flex .cw-input { @apply h-8 py-0; }
 
   /* Checkbox */
   .cw-checkbox { @apply h-4 w-4 rounded border-border text-primary focus:ring-primary; }
@@ -233,12 +238,19 @@ html.dark {
   .cw-sidebar {
     @apply hidden max-h-screen w-60 shrink-0 flex-col border-r border-border bg-surface lg:flex;
   }
+  .cw-sidebar--drawer {
+    @apply fixed inset-y-0 left-0 z-50 -translate-x-full border-r bg-surface
+           transition-transform duration-200 lg:hidden;
+    width: 15rem; max-height: 100vh;
+  }
+  .cw-sidebar--drawer.cw-sidebar--open { @apply translate-x-0; }
   .cw-sidebar__nav { @apply flex-1 overflow-y-auto px-2 py-3; }
   .cw-sidebar__link {
     @apply flex items-center gap-2 rounded-6 px-3 py-2 text-sm text-textPrimary
            transition-colors duration-100 hover:bg-surfaceSecondary;
   }
   .cw-sidebar__link--active { @apply bg-primary/10 text-primary font-medium; }
+  .cw-sidebar__head { @apply px-4 py-3 text-xs font-semibold uppercase tracking-wide text-textSecondary; }
 
   .cw-main { @apply flex-1 min-w-0; }
   .cw-main__inner { @apply px-4 py-4 md:px-6 md:py-6 lg:px-8; }

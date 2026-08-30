@@ -12,7 +12,11 @@ module.exports = {
       sm: '640px',
       md: '768px',
       lg: '1024px',
-      xl: '1200px',
+      // Desktop Density 分档：
+      //   xl  >= 1280px  Desktop (Comfortable/Spacious)
+      //   2xl >= 1600px  Wide Desktop (更宽 content，padding-x 40px)
+      xl: '1280px',
+      '2xl': '1600px',
     },
     extend: {
       colors: {
@@ -29,9 +33,10 @@ module.exports = {
         success: 'rgb(var(--success) / <alpha-value>)',
       },
       borderRadius: {
-        // 封面/卡片圆角 4-6px；禁止使用 rounded-4xl
+        // 封面/卡片圆角 4-6px；Modal 8px；禁止使用 rounded-4xl
         '4': '4px',
         '6': '6px',
+        '8': '8px',
       },
       transitionDuration: {
         // 动画 100-200ms

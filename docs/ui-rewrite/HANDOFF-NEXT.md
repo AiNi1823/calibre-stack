@@ -5,9 +5,10 @@
 > 施工对象：vendored 源码树 `calibre-web/`（Calibre-Web 0.6.27）。
 > 约束：后端 `web.py/db.py/helper.py` 不改；UI 渐进迁移；每阶段 commit+push。
 
-## 0. 当前施工方向 = P13（UI Consistency & UX Stabilization Pass）
-> 已停用「按 Phase 序号逐个新增」；转为 **统一收口**：让全站像同一个电子书产品。
-> 完整指令见 `docs/ui-rewrite/13-phase13-consistency.md`。本基线的 P0–P12 已完成，见 §1。
+## 0. 当前施工方向 = P15（Final Design Spec 实施）
+> 完整指令/改动清单见 `docs/ui-rewrite/15-phase15-final-design-spec.md`。P14（Desktop Density）已完成；P13（统一收口）见 §0b；P0–P12 见 §1。
+> **P15 目标**：按 Final Design Specification 统一收口——Sidebar 232 / Header 60 / Content max 1600 / 书库 minmax(160,180) gap 24 / Typography (Page 28/700, Section 20/600, Body 15, BookTitle 16/600, Author 14, Meta 13) / System Font / --cw-* CSS 变量 / Radius 4/6/8 / Shadow 极简 / 无卡片阴影无放大。
+> 基线：P14 交付物（Sidebar 248 / Header 64 / 书库 160-190 / 字体已放大）为起点，在此基础上做增量调整。
 
 ## 0. 会话卡死根因（重要）
 `big-pickle` 模型在**超长上下文**（尤其大段 Python 拼接模板 + 反复调试文本）下生成退化、死循环，无报错、连接不断、静默 30 分钟级。

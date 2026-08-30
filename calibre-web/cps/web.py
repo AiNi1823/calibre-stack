@@ -860,6 +860,12 @@ def books_table():
                                  visiblility=visibility)
 
 
+@web.route("/ui-preview")
+@user_login_required
+def ui_preview():
+    return render_title_template('ui_preview.html', title=_("UI Preview"), page="ui_preview")
+
+
 @web.route("/ajax/listbooks")
 @user_login_required
 def list_books():

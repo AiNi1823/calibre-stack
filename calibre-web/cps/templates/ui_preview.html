@@ -1,0 +1,520 @@
+{% extends "layout.html" %}
+{% block body %}
+<div class="cw-preview">
+  <header class="cw-preview__header">
+    <h1 class="cw-page-title">{{_('UI Preview')}}</h1>
+    <div class="cw-preview__viewport">
+      <span class="cw-preview__label">Viewport:</span>
+      <span class="cw-preview__value" id="viewportSize">1920 × 1080</span>
+      <button type="button" class="cw-btn cw-btn--ghost cw-btn--sm" id="toggleViewport">{{_('Toggle Mobile')}}</button>
+    </div>
+  </header>
+
+  <section class="cw-preview__section">
+    <h2 class="cw-section-title">{{_('Typography')}}</h2>
+    <div class="cw-preview__grid">
+      <div class="cw-preview__item">
+        <span class="cw-preview__item-label cw-page-title">Page Title (30px)</span>
+        <p class="cw-page-title">Calibre-Web Library</p>
+      </div>
+      <div class="cw-preview__item">
+        <span class="cw-preview__item-label cw-section-title">Section Title (21px)</span>
+        <p class="cw-section-title">Continue Reading</p>
+      </div>
+      <div class="cw-preview__item">
+        <span class="cw-preview__item-label cw-book-title">Book Title (17px)</span>
+        <p class="cw-book-title">The Three-Body Problem</p>
+      </div>
+      <div class="cw-preview__item">
+        <span class="cw-preview__item-label cw-book-author">Author (15px)</span>
+        <p class="cw-book-author">Liu Cixin</p>
+      </div>
+      <div class="cw-preview__item">
+        <span class="cw-preview__item-label cw-book-meta">Metadata (14px)</span>
+        <p class="cw-book-meta">Science Fiction · 2008 · 400 pages</p>
+      </div>
+      <div class="cw-preview__item">
+        <span class="cw-preview__item-label cw-caption">Caption (13px)</span>
+        <p class="cw-caption">Last read 2 hours ago</p>
+      </div>
+      <div class="cw-preview__item">
+        <span class="cw-preview__item-label cw-body">Body (16px)</span>
+        <p class="cw-body">This is the standard body text size used for descriptions, settings labels, and general content. It should be comfortable for extended reading at 1920×1080.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cw-preview__section">
+    <h2 class="cw-section-title">{{_('Buttons')}}</h2>
+    <div class="cw-preview__grid cw-preview__grid--actions">
+      <button class="cw-btn cw-btn--primary">{{_('Primary')}}</button>
+      <button class="cw-btn cw-btn--secondary">{{_('Secondary')}}</button>
+      <button class="cw-btn cw-btn--outline">{{_('Outline')}}</button>
+      <button class="cw-btn cw-btn--ghost">{{_('Ghost')}}</button>
+      <button class="cw-btn cw-btn--primary cw-btn--sm">{{_('Primary Small')}}</button>
+      <button class="cw-btn cw-btn--secondary cw-btn--sm">{{_('Secondary Small')}}</button>
+      <button class="cw-btn cw-btn--icon" aria-label="Icon button">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </button>
+      <button class="cw-btn cw-btn--icon" aria-label="Icon button" disabled>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <section class="cw-preview__section">
+    <h2 class="cw-section-title">{{_('Inputs')}}</h2>
+    <div class="cw-preview__grid cw-preview__grid--forms">
+      <div class="cw-preview__form-item">
+        <label class="cw-field-label">{{_('Text Input')}}</label>
+        <input type="text" class="cw-input" placeholder="Search library...">
+      </div>
+      <div class="cw-preview__form-item">
+        <label class="cw-field-label">{{_('Select')}}</label>
+        <select class="cw-select">
+          <option>{{_('Sort by')}}</option>
+          <option>{{_('Newest')}}</option>
+          <option>{{_('Oldest')}}</option>
+          <option>{{_('Title A-Z')}}</option>
+        </select>
+      </div>
+      <div class="cw-preview__form-item">
+        <label class="cw-field-label">{{_('Disabled Input')}}</label>
+        <input type="text" class="cw-input" placeholder="Disabled" disabled>
+      </div>
+      <div class="cw-preview__form-item">
+        <label class="cw-input inline-flex items-center gap-2">
+          <input type="checkbox" class="cw-checkbox">
+          <span>{{_('Checkbox Label')}}</span>
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <section class="cw-preview__section">
+    <h2 class="cw-section-title">{{_('Badges & Status')}}</h2>
+    <div class="cw-preview__grid cw-preview__grid--badges">
+      <span class="cw-status-badge cw-status-badge--reading">{{_('Reading')}}</span>
+      <span class="cw-status-badge cw-status-badge--finished">{{_('Read')}}</span>
+      <span class="cw-status-badge cw-status-badge--unread">{{_('Unread')}}</span>
+      <span class="cw-status-badge cw-status-badge--processing">{{_('Processing')}}</span>
+      <span class="cw-status-badge cw-status-badge--failed">{{_('Failed')}}</span>
+      <span class="cw-badge">{{_('Default')}}</span>
+      <span class="cw-badge cw-badge--success">{{_('Success')}}</span>
+      <span class="cw-badge cw-badge--danger">{{_('Danger')}}</span>
+    </div>
+  </section>
+
+  <section class="cw-preview__section">
+    <h2 class="cw-section-title">{{_('Book Card')}}</h2>
+    <div class="cw-book-grid" style="max-width: 800px;">
+      <article class="cw-book-card">
+        <a class="cw-book-cover block" href="#">
+          <span class="block h-full w-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M6 3v18"/><path d="M18 3v18"/></svg>
+          </span>
+        </a>
+        <div class="cw-book-card__meta">
+          <a href="#">
+            <p class="cw-book-title">The Three-Body Problem</p>
+          </a>
+          <p class="cw-book-author">Liu Cixin</p>
+          <p class="cw-book-meta">Remembrance of Earth's Past (1)</p>
+          <span class="cw-status-badge cw-status-badge--reading">{{_('Reading')}}</span>
+        </div>
+      </article>
+      <article class="cw-book-card">
+        <a class="cw-book-cover block" href="#">
+          <span class="block h-full w-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M6 3v18"/><path d="M18 3v18"/></svg>
+          </span>
+        </a>
+        <div class="cw-book-card__meta">
+          <a href="#">
+            <p class="cw-book-title">Dune</p>
+          </a>
+          <p class="cw-book-author">Frank Herbert</p>
+          <p class="cw-book-meta">Dune Chronicles (1)</p>
+          <span class="cw-status-badge cw-status-badge--finished">{{_('Read')}}</span>
+        </div>
+      </article>
+      <article class="cw-book-card">
+        <a class="cw-book-cover block" href="#">
+          <span class="block h-full w-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M6 3v18"/><path d="M18 3v18"/></svg>
+          </span>
+        </a>
+        <div class="cw-book-card__meta">
+          <a href="#">
+            <p class="cw-book-title">Foundation</p>
+          </a>
+          <p class="cw-book-author">Isaac Asimov</p>
+          <p class="cw-book-meta">Foundation Series (1)</p>
+          <span class="cw-status-badge cw-status-badge--unread">{{_('Unread')}}</span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="cw-preview__section">
+    <h2 class="cw-section-title">{{_('Book Grid (7-8 per row at 1920px)')}}</h2>
+    <div class="cw-book-grid">
+      {% for i in range(8) %}
+      <article class="cw-book-card">
+        <a class="cw-book-cover block" href="#">
+          <span class="block h-full w-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M6 3v18"/><path d="M18 3v18"/></svg>
+          </span>
+        </a>
+        <div class="cw-book-card__meta">
+          <a href="#">
+            <p class="cw-book-title">Book Title {{ i + 1 }}</p>
+          </a>
+          <p class="cw-book-author">Author Name</p>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="cw-preview__section">
+    <h2 class="cw-section-title">{{_('List View')}}</h2>
+    <div class="cw-result-list" style="max-width: 800px;">
+      <div class="cw-result-item">
+        <a class="cw-result-item__cover" href="#">
+          <span class="block h-full w-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M6 3v18"/><path d="M18 3v18"/></svg>
+          </span>
+        </a>
+        <div class="cw-result-item__body">
+          <div class="flex items-center gap-2">
+            <a href="#"><p class="cw-book-title font-semibold">The Three-Body Problem</p></a>
+            <span class="cw-status-badge cw-status-badge--reading">{{_('Reading')}}</span>
+          </div>
+          <p class="cw-book-author">Liu Cixin</p>
+          <p class="cw-book-series">Remembrance of Earth's Past (1)</p>
+          <p class="cw-result-item__summary">Against the backdrop of China's Cultural Revolution, a secret military project sends signals into space to establish contact with aliens...</p>
+        </div>
+      </div>
+      <div class="cw-result-item">
+        <a class="cw-result-item__cover" href="#">
+          <span class="block h-full w-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M6 3v18"/><path d="M18 3v18"/></svg>
+          </span>
+        </a>
+        <div class="cw-result-item__body">
+          <div class="flex items-center gap-2">
+            <a href="#"><p class="cw-book-title font-semibold">Dune</p></a>
+            <span class="cw-status-badge cw-status-badge--finished">{{_('Read')}}</span>
+          </div>
+          <p class="cw-book-author">Frank Herbert</p>
+          <p class="cw-book-series">Dune Chronicles (1)</p>
+          <p class="cw-result-item__summary">Set on the desert planet Arrakis, Dune is the story of the boy Paul Atreides, who would become the mysterious man known as Muad'Dib...</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cw-preview__section">
+    <h2 class="cw-section-title">{{_('Modal / Dialog')}}</h2>
+    <div class="cw-preview__grid cw-preview__grid--actions">
+      <button type="button" class="cw-btn cw-btn--primary" @click="$store.ui.openUploadModal()">{{_('Open Upload Modal')}}</button>
+    </div>
+  </section>
+
+  <section class="cw-preview__section">
+    <h2 class="cw-section-title">{{_('Task Item')}}</h2>
+    <div class="cw-task-list" style="max-width: 800px;">
+      <article class="cw-task-item">
+        <div class="cw-task-item__cover">
+          <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M6 3v18"/><path d="M18 3v18"/></svg>
+        </div>
+        <div class="cw-task-item__info">
+          <h3 class="cw-task-item__title">The Three-Body Problem.epub</h3>
+          <p class="cw-task-item__status">{{_('Importing to library...')}}</p>
+          <div class="cw-task-item__progress">
+            <div class="cw-task-item__progress-bar" style="width: 78%"></div>
+          </div>
+        </div>
+        <div class="cw-task-item__actions">
+          <button type="button" class="cw-task-item__action cw-task-item__action--danger">{{_('Cancel')}}</button>
+        </div>
+      </article>
+      <article class="cw-task-item">
+        <div class="cw-task-item__cover">
+          <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M6 3v18"/><path d="M18 3v18"/></svg>
+        </div>
+        <div class="cw-task-item__info">
+          <h3 class="cw-task-item__title">Dune.epub</h3>
+          <p class="cw-task-item__status cw-badge cw-badge--success">{{_('Completed')}}</p>
+        </div>
+        <div class="cw-task-item__actions">
+          <a href="#" class="cw-task-item__action cw-task-item__action--primary">{{_('View Book')}}</a>
+        </div>
+      </article>
+      <article class="cw-task-item">
+        <div class="cw-task-item__cover">
+          <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M6 3v18"/><path d="M18 3v18"/></svg>
+        </div>
+        <div class="cw-task-item__info">
+          <h3 class="cw-task-item__title">Failed_Book.epub</h3>
+          <p class="cw-task-item__status cw-badge cw-badge--danger">{{_('Failed')}}</p>
+          <p class="cw-caption">{{_('File format could not be identified')}}</p>
+        </div>
+        <div class="cw-task-item__actions">
+          <button type="button" class="cw-task-item__action cw-task-item__action--primary">{{_('Retry')}}</button>
+          <button type="button" class="cw-task-item__action cw-task-item__action--danger">{{_('Delete')}}</button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="cw-preview__section">
+    <h2 class="cw-section-title">{{_('Dropdown Menu')}}</h2>
+    <div class="cw-dropdown">
+      <button type="button" class="cw-btn cw-btn--secondary" @click="drop = !drop" @click.outside="drop = false" :aria-expanded="drop ? 'true' : 'false'" aria-haspopup="menu" x-data="{ drop: false }">{{_('Actions')}}
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div x-show="drop" x-transition x-cloak class="cw-dropdown__menu" role="menu" x-data="{ drop: false }">
+        <a class="cw-dropdown__item" role="menuitem" href="#">{{_('Edit Metadata')}}</a>
+        <a class="cw-dropdown__item" role="menuitem" href="#">{{_('Download')}}</a>
+        <a class="cw-dropdown__item" role="menuitem" href="#">{{_('Send to eReader')}}</a>
+        <a class="cw-dropdown__item" role="menuitem" href="#">{{_('Add to Shelf')}}</a>
+        <hr style="margin: 4px 0; border-color: var(--color-border);">
+        <a class="cw-dropdown__item" role="menuitem" href="#" style="color: var(--color-danger);">{{_('Delete')}}</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="cw-preview__section">
+    <h2 class="cw-section-title">{{_('Pagination')}}</h2>
+    <nav class="cw-pagination" aria-label="Pagination">
+      <a class="cw-pagination__btn" href="#">«</a>
+      <a class="cw-pagination__btn" href="#">1</a>
+      <a class="cw-pagination__btn cw-pagination__btn--active" href="#" aria-current="page">2</a>
+      <a class="cw-pagination__btn" href="#">3</a>
+      <span class="cw-pagination__btn" aria-hidden="true">…</a>
+      <a class="cw-pagination__btn" href="#">10</a>
+      <a class="cw-pagination__btn" href="#">»</a>
+    </nav>
+  </section>
+
+  <section class="cw-preview__section">
+    <h2 class="cw-section-title">{{_('Empty States')}}</h2>
+    <div class="cw-preview__grid">
+      <div class="cw-search__noresult" style="max-width: 300px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-neutral-400"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <h1 class="text-lg font-semibold">{{_('No Results Found')}}</h1>
+        <p class="text-neutral-500">{{_('No books match your search')}}</p>
+        <p class="text-sm text-neutral-400">{{_('Try adjusting your keywords or filters.')}}</p>
+      </div>
+      <div class="cw-search__noresult" style="max-width: 300px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-neutral-400"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <h1 class="text-lg font-semibold">{{_('No Tasks Yet')}}</h1>
+        <p class="text-neutral-500">{{_('Upload a book to get started')}}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cw-preview__section">
+    <h2 class="cw-section-title">{{_('Settings Form')}}</h2>
+    <div class="cw-card" style="max-width: 600px;">
+      <div class="p-4">
+        <div class="mb-4">
+          <label class="cw-field-label" for="preview_port">{{_('Server Port')}}</label>
+          <input type="number" class="cw-input" id="preview_port" value="8083">
+        </div>
+        <div class="mb-4 flex items-center gap-2">
+          <input type="checkbox" id="preview_ssl" class="cw-checkbox">
+          <label class="cw-field-label" for="preview_ssl">{{_('Enable SSL')}}</label>
+        </div>
+        <div class="mb-4">
+          <label class="cw-field-label" for="preview_log">{{_('Log Level')}}</label>
+          <select class="cw-select" id="preview_log">
+            <option>DEBUG</option>
+            <option selected>INFO</option>
+            <option>WARNING</option>
+            <option>ERROR</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" class="cw-btn cw-btn--primary">{{_('Save')}}</button>
+          <button type="button" class="cw-btn cw-btn--secondary">{{_('Cancel')}}</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cw-preview__section">
+    <h2 class="cw-section-title">{{_('Table')}}</h2>
+    <div style="overflow-x: auto;">
+      <table class="cw-table">
+        <thead>
+          <tr>
+            <th>{{_('Book')}}</th>
+            <th>{{_('Author')}}</th>
+            <th>{{_('Series')}}</th>
+            <th>{{_('Status')}}</th>
+            <th>{{_('Actions')}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="#" class="cw-book-title">The Three-Body Problem</a></td>
+            <td><a href="#" class="cw-book-author">Liu Cixin</a></td>
+            <td>Remembrance of Earth's Past (1)</td>
+            <td><span class="cw-status-badge cw-status-badge--reading">{{_('Reading')}}</span></td>
+            <td><button class="cw-btn cw-btn--sm cw-btn--outline">{{_('Read')}}</button></td>
+          </tr>
+          <tr>
+            <td><a href="#" class="cw-book-title">Dune</a></td>
+            <td><a href="#" class="cw-book-author">Frank Herbert</a></td>
+            <td>Dune Chronicles (1)</td>
+            <td><span class="cw-status-badge cw-status-badge--finished">{{_('Read')}}</span></td>
+            <td><button class="cw-btn cw-btn--sm cw-btn--outline">{{_('Read')}}</button></td>
+          </tr>
+          <tr>
+            <td><a href="#" class="cw-book-title">Foundation</a></td>
+            <td><a href="#" class="cw-book-author">Isaac Asimov</a></td>
+            <td>Foundation Series (1)</td>
+            <td><span class="cw-status-badge cw-status-badge--unread">{{_('Unread')}}</span></td>
+            <td><button class="cw-btn cw-btn--sm cw-btn--outline">{{_('Read')}}</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="cw-preview__section">
+    <h2 class="cw-section-title">{{_('Toast / Notification')}}</h2>
+    <div class="cw-preview__grid cw-preview__grid--badges">
+      <div class="cw-badge cw-badge--success" style="padding: 12px 16px; font-size: var(--ui-secondary);">{{_('Book uploaded successfully')}}</div>
+      <div class="cw-badge cw-badge--danger" style="padding: 12px 16px; font-size: var(--ui-secondary);">{{_('Upload failed: invalid format')}}</div>
+      <div class="cw-badge cw-badge--primary" style="padding: 12px 16px; font-size: var(--ui-secondary);">{{_('Processing book...')}}</div>
+    </div>
+  </section>
+
+  <section class="cw-preview__section">
+    <h2 class="cw-section-title">{{_('Progress Bar')}}</h2>
+    <div style="max-width: 400px;">
+      <div class="cw-task-item__progress">
+        <div class="cw-task-item__progress-bar" style="width: 0%"></div>
+      </div>
+      <div class="cw-task-item__progress" style="margin-top: 8px;">
+        <div class="cw-task-item__progress-bar" style="width: 45%"></div>
+      </div>
+      <div class="cw-task-item__progress" style="margin-top: 8px;">
+        <div class="cw-task-item__progress-bar" style="width: 100%"></div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .cw-preview {
+      max-width: var(--main-max-width);
+      margin: 0 auto;
+      padding: var(--main-padding);
+    }
+    .cw-preview__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .cw-preview__viewport {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: var(--ui-meta);
+      color: var(--color-secondary);
+    }
+    .cw-preview__value {
+      font-family: monospace;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+    .cw-preview__section {
+      margin-bottom: 48px;
+    }
+    .cw-preview__grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .cw-preview__grid--actions {
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      align-items: center;
+    }
+    .cw-preview__grid--forms {
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+    .cw-preview__grid--badges {
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      align-items: center;
+    }
+    .cw-preview__item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .cw-preview__item-label {
+      font-size: var(--ui-caption);
+      color: var(--color-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .cw-preview__form-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    @media (max-width: 768px) {
+      .cw-preview__header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+{% endblock %}
+{% block js %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const viewportEl = document.getElementById('viewportSize');
+  const toggleBtn = document.getElementById('toggleViewport');
+  let isMobile = false;
+
+  function updateViewport() {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    viewportEl.textContent = `${w} × ${h}`;
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    isMobile = !isMobile;
+    if (isMobile) {
+      document.body.style.width = '390px';
+      document.body.style.margin = '0 auto';
+      document.body.style.border = '1px solid var(--color-border)';
+      document.body.style.borderRadius = '20px';
+      document.body.style.overflow = 'hidden';
+      toggleBtn.textContent = '{{_('Toggle Desktop')}}';
+    } else {
+      document.body.style.width = '';
+      document.body.style.margin = '';
+      document.body.style.border = '';
+      document.body.style.borderRadius = '';
+      document.body.style.overflow = '';
+      toggleBtn.textContent = '{{_('Toggle Mobile')}}';
+    }
+    setTimeout(updateViewport, 100);
+  });
+
+  updateViewport();
+  window.addEventListener('resize', updateViewport);
+});
+</script>
+{% endblock %}

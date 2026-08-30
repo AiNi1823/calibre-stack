@@ -2,7 +2,7 @@
 {% import 'image.html' as image %}
 <!DOCTYPE html>
 <html lang="{{ current_user.locale }}">
-  <head>
+<head>
     <title>{{instance}} | {{title}}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,17 +11,11 @@
     {% if g.google_site_verification|length > 0 %}
       <meta name="google-site-verification" content="{{g.google_site_verification}}">
     {% endif %}
-    <!-- Bootstrap -->
+    <!-- Favicon -->
     <link rel="apple-touch-icon" sizes="140x140" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <link href="{{ url_for('static', filename='css/libs/bootstrap.min.css') }}" rel="stylesheet" media="screen">
-    {% block header %}{% endblock %}
-    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" media="screen">
-    <link href="{{ url_for('static', filename='css/upload.css') }}" rel="stylesheet" media="screen">
-    {% if g.current_theme == 1 %}
-       <link href="{{ url_for('static', filename='css/caliBlur.css') }}" rel="stylesheet" media="screen">
-       <link href="{{ url_for('static', filename='css/caliBlur_override.css') }}" rel="stylesheet" media="screen">
-    {% endif %}
+    <!-- UI Tokens (Typography, Colors, Spacing) -->
+    <link href="{{ url_for('static', filename='css/ui-tokens.css') }}" rel="stylesheet" media="screen">
     <!-- Tailwind CSS (UI Rewrite 主样式；与既有 Bootstrap 渐进共存，详见 docs/ui-rewrite) -->
     <link href="{{ url_for('static', filename='css/tailwind.css') }}" rel="stylesheet" media="screen">
     <!-- Lucide Icons -->
@@ -39,57 +33,90 @@
   </head>
   <body class="{{ page }} {{ bodyClass }}{% if g.current_theme == 1 %} blur{% endif %}" data-text="{{_('Home')}}" data-textback="{{_('Back')}}" x-data x-on:keydown.escape.window="$store.ui.closeSidebar()" x-on:keydown.ctrl.k.prevent.window="$store.ui.focusSearch()" x-on:keydown.slash.prevent.window="$store.ui.focusSearch()">
 
-  <div class="cw-app">
-    <aside class="cw-sidebar">
-      <div class="cw-sidebar__head">{{instance}}</div>
-      <nav class="cw-sidebar__nav" aria-label="{{_('Browse')}}">
-        <ul class="list-unstyled">
+<div class="cw-app">
+      <aside class="cw-sidebar">
+        <div class="cw-sidebar__head">{{instance}}</div>
+        <nav class="cw-sidebar__nav" aria-label="{{_('Browse')}}">
+          {% set current_section = '' %}
           {% for element in sidebar %}
-            {% if current_user.check_visibility(element['visibility']) and element['public'] %}
-              <li><a class="cw-sidebar__link{% if page == element['page'] %} cw-sidebar__link--active{% endif %}" href="{% if element['no_param'] %}{{url_for(element['link'], data=element['page'])}}{%else%}{{url_for(element['link'], data=element['page'], sort_param='stored')}}{% endif %}" {% if page == element['page'] %}aria-current="page"{% endif %}>{{ _(element['text']) }}</a></li>
+            {% if element.section is defined %}
+              {% set current_section = element.section %}
+              <div class="cw-sidebar__head">{{ _(element.section) }}</div>
+            {% else %}
+              {% if current_user.check_visibility(element['visibility']) and element['public'] %}
+                <li><a class="cw-sidebar__link{% if page == element['page'] %} cw-sidebar__link--active{% endif %}" href="{% if element.no_param %}{{url_for(element['link'])}}{% else %}{{url_for(element['link'], data=element.data if element.data is defined else none, sort_param=element.sort_param or 'stored')}}{% endif %}" {% if page == element['page'] %}aria-current="page"{% endif %}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    {% if element.glyph == 'home' %}<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>{% endif %}
+                    {% if element.glyph == 'book-open' %}<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>{% endif %}
+                    {% if element.glyph == 'bookmark' %}<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>{% endif %}
+                    {% if element.glyph == 'layout-grid' %}<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>{% endif %}
+                    {% if element.glyph == 'user' %}<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>{% endif %}
+                    {% if element.glyph == 'tag' %}<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7.01"/>{% endif %}
+                    {% if element.glyph == 'upload' %}<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>{% endif %}
+                    {% if element.glyph == 'settings' %}<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>{% endif %}
+                  </svg>
+                  {{ _(element['text']) }}
+                </a></li>
+              {% endif %}
             {% endif %}
           {% endfor %}
-        </ul>
-        {% if current_user.is_authenticated or g.allow_anonymous %}
-        <div class="cw-sidebar__head public-shelves">书架</div>
-        <ul class="list-unstyled">
-          {% for shelf in g.shelves_access %}
-            <li><a class="cw-sidebar__link" href="{{url_for('shelf.show_shelf', shelf_id=shelf.id)}}">{{shelf.name|shortentitle(40)}}{% if shelf.is_public == 1 %} {{_('(Public)')}}{% endif %} <span class="cw-badge">{{shelf.books.all()|length}}</span></a></li>
-          {% endfor %}
-          {% if not current_user.is_anonymous %}
-            <li><a class="cw-sidebar__link" id="nav_createshelf" href="{{url_for('shelf.create_shelf')}}">{{_('Create a Shelf')}}</a></li>
-            <li><a class="cw-sidebar__link{% if page == 'stat' %} cw-sidebar__link--active{% endif %}" id="nav_about" href="{{url_for('about.stats')}}">{{_('About')}}</a></li>
+          {% if current_user.is_authenticated or g.allow_anonymous %}
+          <div class="cw-sidebar__head">{{_('Shelves')}}</div>
+          <ul class="list-unstyled">
+            {% for shelf in g.shelves_access %}
+              <li><a class="cw-sidebar__link" href="{{url_for('shelf.show_shelf', shelf_id=shelf.id)}}">{{shelf.name|shortentitle(40)}}{% if shelf.is_public == 1 %} {{_('(Public)')}}{% endif %} <span class="cw-badge">{{shelf.books.all()|length}}</span></a></li>
+            {% endfor %}
+            {% if not current_user.is_anonymous %}
+              <li><a class="cw-sidebar__link" id="nav_createshelf" href="{{url_for('shelf.create_shelf')}}">{{_('Create a Shelf')}}</a></li>
+              <li><a class="cw-sidebar__link{% if page == 'stat' %} cw-sidebar__link--active{% endif %}" id="nav_about" href="{{url_for('about.stats')}}">{{_('About')}}</a></li>
+            {% endif %}
+          </ul>
           {% endif %}
-        </ul>
-        {% endif %}
-      </nav>
-    </aside>
+        </nav>
+      </aside>
 
     <aside id="mobile-nav" class="cw-sidebar cw-sidebar--drawer" role="dialog" aria-modal="true" aria-label="{{_('Browse')}}" :class="$store.ui.sidebarOpen ? 'cw-sidebar--open' : ''" x-cloak>
-      <div class="cw-sidebar__head flex items-center justify-between">
-        <span id="drawer-title">{{instance}}</span>
-        <button type="button" class="cw-btn--icon" @click="$store.ui.closeSidebar()" aria-label="{{_('Close')}}">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
-      <nav class="cw-sidebar__nav" aria-label="{{_('Browse')}}">
-        <ul class="list-unstyled">
+        <div class="cw-sidebar__head flex items-center justify-between">
+          <span id="drawer-title">{{instance}}</span>
+          <button type="button" class="cw-btn--icon" @click="$store.ui.closeSidebar()" aria-label="{{_('Close')}}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <nav class="cw-sidebar__nav" aria-label="{{_('Browse')}}">
+          {% set current_section = '' %}
           {% for element in sidebar %}
-            {% if current_user.check_visibility(element['visibility']) and element['public'] %}
-              <li><a class="cw-sidebar__link{% if page == element['page'] %} cw-sidebar__link--active{% endif %}" href="{% if element['no_param'] %}{{url_for(element['link'], data=element['page'])}}{%else%}{{url_for(element['link'], data=element['page'], sort_param='stored')}}{% endif %}" @click="$store.ui.closeSidebar()" {% if page == element['page'] %}aria-current="page"{% endif %}>{{ _(element['text']) }}</a></li>
+            {% if element.section is defined %}
+              {% set current_section = element.section %}
+              <div class="cw-sidebar__head">{{ _(element.section) }}</div>
+            {% else %}
+              {% if current_user.check_visibility(element['visibility']) and element['public'] %}
+                <li><a class="cw-sidebar__link{% if page == element['page'] %} cw-sidebar__link--active{% endif %}" href="{% if element.no_param %}{{url_for(element['link'])}}{% else %}{{url_for(element['link'], data=element.data if element.data is defined else none, sort_param=element.sort_param or 'stored')}}{% endif %}" @click="$store.ui.closeSidebar()" {% if page == element['page'] %}aria-current="page"{% endif %}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    {% if element.glyph == 'home' %}<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>{% endif %}
+                    {% if element.glyph == 'book-open' %}<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>{% endif %}
+                    {% if element.glyph == 'bookmark' %}<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>{% endif %}
+                    {% if element.glyph == 'layout-grid' %}<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>{% endif %}
+                    {% if element.glyph == 'user' %}<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>{% endif %}
+                    {% if element.glyph == 'tag' %}<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7.01"/>{% endif %}
+                    {% if element.glyph == 'upload' %}<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>{% endif %}
+                    {% if element.glyph == 'settings' %}<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>{% endif %}
+                    {% if element.glyph == 'monitor' %}<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/>{% endif %}
+                  </svg>
+                  {{ _(element['text']) }}
+                </a></li>
+              {% endif %}
             {% endif %}
           {% endfor %}
-        </ul>
-        {% if current_user.is_authenticated or g.allow_anonymous %}
-        <div class="cw-sidebar__head public-shelves">书架</div>
-        <ul class="list-unstyled">
-          {% for shelf in g.shelves_access %}
-            <li><a class="cw-sidebar__link" href="{{url_for('shelf.show_shelf', shelf_id=shelf.id)}}" @click="$store.ui.closeSidebar()">{{shelf.name|shortentitle(40)}}{% if shelf.is_public == 1 %} {{_('(Public)')}}{% endif %} <span class="cw-badge">{{shelf.books.all()|length}}</span></a></li>
-          {% endfor %}
-        </ul>
-        {% endif %}
-      </nav>
-    </aside>
+          {% if current_user.is_authenticated or g.allow_anonymous %}
+          <div class="cw-sidebar__head">{{_('Shelves')}}</div>
+          <ul class="list-unstyled">
+            {% for shelf in g.shelves_access %}
+              <li><a class="cw-sidebar__link" href="{{url_for('shelf.show_shelf', shelf_id=shelf.id)}}" @click="$store.ui.closeSidebar()">{{shelf.name|shortentitle(40)}}{% if shelf.is_public == 1 %} {{_('(Public)')}}{% endif %} <span class="cw-badge">{{shelf.books.all()|length}}</span></a></li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </nav>
+      </aside>
 
     <div x-show="$store.ui.sidebarOpen" x-transition.opacity class="fixed inset-0 z-40 bg-black/40 lg:hidden" @click="$store.ui.closeSidebar()" x-cloak></div>
 
@@ -107,28 +134,12 @@
         </form>
         {% endif %}
 
-        <div class="ml-auto flex items-center gap-1">
+        <div class="ml-auto flex items-center gap-2">
           {% if current_user.role_upload() and g.allow_upload %}
-          <form id="form-upload" action="/api/upload" class="hidden md:block" data-title="{{_('Uploading...')}}" data-footer="{{_('Close')}}" data-failed="{{_('Error')}}" data-message="{{_('Upload done, processing, please wait...')}}" method="post" enctype="multipart/form-data">
-            <input id="btn-upload" name="btn-upload" type="file" accept="{% for format in accept %}.{% if format != ''%}{{format}}{% else %}*{% endif %}{{ ',' if not loop.last }}{% endfor %}" multiple>
-            <input class="hide" id="btn-upload2" name="btn-upload2" type="file" accept="{% for format in accept %}.{% if format != ''%}{{format}}{% else %}*{% endif %}{{ ',' if not loop.last }}{% endfor %}">
-            <button type="button" class="cw-btn cw-btn--secondary" onclick="document.getElementById('btn-upload').click()">{{_('Upload')}}</button>
-          </form>
-          <form id="form-upload" action="/api/upload" class="md:hidden" data-title="{{_('Uploading...')}}" data-footer="{{_('Close')}}" data-failed="{{_('Error')}}" data-message="{{_('Upload done, processing, please wait...')}}" method="post" enctype="multipart/form-data">
-            <input id="btn-upload-m" name="btn-upload" type="file" accept="{% for format in accept %}.{% if format != ''%}{{format}}{% else %}*{% endif %}{{ ',' if not loop.last }}{% endfor %}" multiple>
-            <button type="button" class="cw-btn--icon md:hidden" aria-label="{{_('Upload')}}">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            </button>
-          </form>
-          {% endif %}
-
-          {% if not current_user.is_anonymous and not simple %}
-          <a class="cw-btn--icon" id="top_tasks" href="{{url_for('tasks.get_tasks_status')}}" aria-label="{{_('Tasks')}}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          </a>
-          <a class="cw-btn--icon" id="top_mytasks" href="/tasks" aria-label="我的上传">
+          <button type="button" class="cw-btn cw-btn--primary" @click="$store.ui.openUploadModal()" aria-label="{{_('Upload Books')}}">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          </a>
+            <span class="hidden sm:inline">{{_('Upload')}}</span>
+          </button>
           {% endif %}
 
           {% if current_user.role_admin() %}
@@ -206,6 +217,26 @@
       </div>
     </div>
   </div>
+
+    <!-- Upload Modal -->
+    <div class="cw-upload-modal" id="uploadModal" x-show="$store.ui.uploadModalOpen" x-transition.opacity x-cloak role="dialog" aria-modal="true" aria-labelledby="uploadModalTitle" @keydown.escape.window="$store.ui.closeUploadModal()">
+      <div class="cw-upload-modal__content" @click.outside="$store.ui.closeUploadModal()">
+        <div class="flex items-center justify-between mb-6">
+          <h2 id="uploadModalTitle" class="cw-upload-modal__title">{{_('Upload Books')}}</h2>
+          <button type="button" class="cw-btn--icon" @click="$store.ui.closeUploadModal()" aria-label="{{_('Close')}}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <p class="cw-upload-modal__desc">{{_('Drag and drop files here, or click to select files')}}</p>
+        <form id="uploadForm" action="/api/upload" method="post" enctype="multipart/form-data" class="cw-upload-zone" @dragover.prevent="dragOver = true" @dragleave.prevent="dragOver = false" @drop.prevent="handleDrop($event)" x-data="{ dragOver: false }" :class="{ 'drag-over': dragOver }">
+          <svg class="cw-upload-zone__icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <p class="cw-upload-zone__text">{{_('Drag files here')}}</p>
+          <p class="cw-upload-zone__hint">{{_('or click to browse')}}</p>
+          <input type="file" id="uploadInput" name="btn-upload" class="hide" accept="{% for format in accept %}.{% if format != ''%}{{format}}{% else %}*{% endif %}{{ ',' if not loop.last }}{% endfor %}" multiple @change="$store.ui.handleUpload($event)">
+          <p class="cw-upload-formats">{{_('Supported:')}} EPUB, PDF, MOBI, AZW3, TXT, CBZ, CBR, DJVU, MP3, M4B</p>
+        </form>
+      </div>
+    </div>
 
     <div class="modal fade" id="bookDetailsModal" tabindex="-1" role="dialog" aria-labelledby="bookDetailsModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg" role="document">

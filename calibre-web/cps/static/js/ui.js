@@ -7,6 +7,7 @@ document.addEventListener('alpine:init', function () {
   Alpine.store('ui', {
     dark: window.calibreTheme ? window.calibreTheme.get() === 'dark' : false,
     sidebarOpen: false,
+    uploadModalOpen: false,
     _lastFocus: null,
     toggleDark() {
       if (!window.calibreTheme) return;
@@ -36,6 +37,28 @@ document.addEventListener('alpine:init', function () {
     focusSearch() {
       const input = document.getElementById('query');
       if (input) { input.focus(); input.select(); }
+    },
+    openUploadModal() {
+      this._lastFocus = document.activeElement;
+      this.uploadModalOpen = true;
+      setTimeout(() => {
+        const input = document.getElementById('uploadInput');
+        if (input) input.focus();
+      }, 0);
+    },
+    closeUploadModal() {
+      this.uploadModalOpen = false;
+      if (this._lastFocus && typeof this._lastFocus.focus === 'function') {
+        this._lastFocus.focus();
+        this._lastFocus = null;
+      }
+    },
+    handleUpload(event) {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+      const form = document.getElementById('uploadForm');
+      if (form) form.submit();
+      this.closeUploadModal();
     },
   });
 });

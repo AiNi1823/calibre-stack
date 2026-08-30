@@ -3894,3 +3894,51 @@ msgstr "同步所选书架到 Kobo"
 msgid "Show Read/Unread Section"
 msgstr "显示已读、未读栏目"
 
+
+#: cps/render_template.py:54
+msgid "BROWSE"
+msgstr "浏览"
+
+#: cps/render_template.py:66
+msgid "ACTIVITY"
+msgstr "活动"
+
+#: cps/render_template.py:72
+msgid "SYSTEM"
+msgstr "系统"
+
+#: cps/render_template.py:46 cps/templates/index.html:78
+msgid "View All"
+msgstr "查看全部"
+
+#: cps/render_template.py:47
+msgid "All Books"
+msgstr "所有书籍"
+
+#: cps/render_template.py:48
+msgid "Show All Books"
+msgstr "显示所有书籍"
+
+#: cps/render_template.py:50
+msgid "Continue Reading"
+msgstr "继续阅读"
+
+#: cps/render_template.py:51
+msgid "Show Continue Reading"
+msgstr "显示继续阅读"
+
+#: cps/render_template.py:67
+msgid "Upload & Tasks"
+msgstr "上传和任务"
+
+#: cps/render_template.py:68
+msgid "Show Upload & Tasks"
+msgstr "显示上传和任务"
+
+#: cps/render_template.py:76
+msgid "UI Preview"
+msgstr "UI 预览"
+
+#: cps/render_template.py:77
+msgid "Show UI Preview"
+msgstr "显示 UI 预览"

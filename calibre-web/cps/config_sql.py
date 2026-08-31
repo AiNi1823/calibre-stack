@@ -376,7 +376,7 @@ class ConfigSQL(object):
             # pylint: disable=access-member-before-definition
             logfile = logger.setup(cli_param.logpath or self.config_logfile, self.config_log_level)
         if logfile != os.path.abspath(self.config_logfile):
-            if logfile != os.path.abspath(cli_param.logpath):
+            if cli_param.logpath and logfile != os.path.abspath(cli_param.logpath):
                 log.warning("Log path %s not valid, falling back to default", self.config_logfile)
             self.config_logfile = logfile
             s.config_logfile = logfile

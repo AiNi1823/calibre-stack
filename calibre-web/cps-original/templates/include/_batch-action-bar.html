@@ -1,0 +1,52 @@
+{#
+  Phase-8 批量操作栏（Alpine）。
+  依赖：外层 x-data="calibreBatch(editUrl, delUrl)" 包裹书库网格；
+  js/batch.js 提供状态与方法。纯前端，复用现有 edit-book JSON 端点，不改后端。
+#}
+<div x-cloak
+     x-show="selected.length > 0"
+     x-transition
+     class="cw-batch-bar"
+     role="dialog"
+     aria-live="polite"
+     aria-label="{{_('Batch actions')}}">
+  <div class="cw-batch-bar__backdrop" @click="clear()"></div>
+  <div class="cw-batch-bar__panel">
+    <div class="cw-batch-bar__meta">
+      <span class="cw-batch-bar__count">{{_('Selected')}} <strong x-text="selected.length"></strong> {{_('books')}}</span>
+      <button type="button" class="cw-btn cw-btn--ghost cw-btn--sm" @click="toggleAll()">
+        <span class="material-check"></span> {{_('Select all / none')}}
+      </button>
+      <button type="button" class="cw-btn cw-btn--ghost cw-btn--sm" @click="clear()">{{_('Cancel')}}</button>
+    </div>
+
+    <div class="cw-batch-bar__actions">
+      <select class="cw-input cw-batch-bar__kind" x-model="editKind" aria-label="{{_('Edit field')}}">
+        <option value="tags">{{_('Tags')}}</option>
+        <option value="series">{{_('Series')}}</option>
+        <option value="authors">{{_('Author')}}</option>
+      </select>
+      <input class="cw-input cw-batch-bar__value" type="text" x-model="value"
+             :placeholder="'{{_('Edit')}}…'" aria-label="{{_('Value')}}">
+      <button type="button" class="cw-btn cw-btn--primary cw-btn--sm" :disabled="busy" @click="doEdit()">
+        {{_('Change')}}
+      </button>
+
+      <template x-if="!confirmingDelete">
+        <button type="button" class="cw-btn cw-btn--danger cw-btn--sm" :disabled="busy"
+                @click="confirmingDelete = true">{{_('Delete')}}</button>
+      </template>
+      <template x-if="confirmingDelete">
+        <span class="cw-batch-bar__confirm">
+          <span>{{_('Delete selected books?')}}</span>
+          <button type="button" class="cw-btn cw-btn--danger cw-btn--sm" :disabled="busy" @click="doDelete()">{{_('Yes')}}</button>
+          <button type="button" class="cw-btn cw-btn--ghost cw-btn--sm" @click="confirmingDelete = false">{{_('No')}}</button>
+        </span>
+      </template>
+    </div>
+
+    <p x-show="feedback.text" x-cloak
+       :class="feedback.kind === 'error' ? 'cw-batch-bar__feedback--error' : 'cw-batch-bar__feedback--ok'"
+       class="cw-batch-bar__feedback" x-text="feedback.text"></p>
+  </div>
+</div>

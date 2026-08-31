@@ -1,0 +1,236 @@
+{% extends "layout.html" %}
+{% macro display_bool_setting(setting_value) -%}
+  {% if setting_value %}<span class="cw-status-badge cw-status-badge--finished">{{_('Yes')}}</span>{% else %}<span class="cw-status-badge cw-status-badge--unread">{{_('No')}}</span>{% endif %}
+{%- endmacro %}
+{% block body %}
+<div class="flex flex-col gap-6">
+  <section class="cw-card">
+    <div class="cw-card__body">
+      <h2 class="cw-page-title mb-3">{{_('Users')}}</h2>
+    {% if allUser.__len__() < 10 %}
+      <table class="cw-table mb-3" id="table_user">
+        <thead>
+          <tr>
+            <th>{{_('Username')}}</th>
+            <th>{{_('Email')}}</th>
+            <th>{{_('Send to eReader Email')}}</th>
+            <th>{{_('Downloads')}}</th>
+            <th class="hidden-xs hidden-sm">{{_('Admin')}}</th>
+            <th class="hidden-xs hidden-sm">{{_('Password')}}</th>
+          {% if config.config_uploading %}
+            <th class="hidden-xs hidden-sm">{{_('Upload')}}</th>
+          {%  endif %}
+            <th class="hidden-xs hidden-sm">{{_('Download')}}</th>
+            <th class="hidden-xs hidden-sm hidden-md">{{_('View Books')}}</th>
+            <th class="hidden-xs hidden-sm hidden-md">{{_('Edit')}}</th>
+            <th class="hidden-xs hidden-sm hidden-md">{{_('Delete')}}</th>
+            <th class="hidden-xs hidden-sm hidden-md">{{_('Public Shelf')}}</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for user in allUser %}
+          {% if not user.role_anonymous() or config.config_anonbrowse %}
+          <tr>
+            <td><a class="cw-sidebar__link cw-book-title" href="{{url_for('admin.edit_user', user_id=user.id)}}">{{user.name}}</a></td>
+            <td>{{user.email}}</td>
+            <td>{{user.kindle_mail}}</td>
+            <td>{{user.downloads.count()}}</td>
+            <td>{{ display_bool_setting(user.role_admin()) }}</td>
+            <td>{{ display_bool_setting(user.role_passwd()) }}</td>
+            {% if config.config_uploading %}
+            <td>{{ display_bool_setting(user.role_upload()) }}</td>
+            {%  endif %}
+            <td>{{ display_bool_setting(user.role_download()) }}</td>
+            <td>{{ display_bool_setting(user.role_viewer()) }}</td>
+            <td>{{ display_bool_setting(user.role_edit()) }}</td>
+            <td>{{ display_bool_setting(user.role_delete_books()) }}</td>
+            <td>{{ display_bool_setting(user.role_edit_shelfs()) }}</td>
+          </tr>
+          {% endif %}
+        {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+        {% if not simple %}
+          <a class="cw-btn cw-btn--secondary" id="admin_user_table" href="{{url_for('admin.edit_user_table')}}">{{_('Edit Users')}}</a>
+        {% endif %}
+        <a class="cw-btn cw-btn--secondary" id="admin_new_user" href="{{url_for('admin.new_user')}}">{{_('Add New User')}}</a>
+      {% if (config.config_login_type == 1) %}
+        <button type="button" class="cw-btn cw-btn--secondary" id="import_ldap_users" data-toggle="modal" data-target="#StatusDialog">{{_('Import LDAP Users')}}</button>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="cw-card">
+    <div class="cw-card__body">
+      <h2 class="cw-page-title mb-3">{{_('Email Server Settings')}}</h2>
+      <dl class="mb-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+      {% if config.get_mail_server_configured() %}
+        {% if config.mail_server_type == 0 %}
+          <div class="flex justify-between"><dt class="text-textSecondary">{{_('SMTP Hostname')}}</dt><dd>{{config.mail_server}}</dd></div>
+          <div class="flex justify-between"><dt class="text-textSecondary">{{_('SMTP Port')}}</dt><dd>{{config.mail_port}}</dd></div>
+          <div class="flex justify-between"><dt class="text-textSecondary">{{_('Encryption')}}</dt><dd>{{ display_bool_setting(config.mail_use_ssl) }}</dd></div>
+          <div class="flex justify-between"><dt class="text-textSecondary">{{_('SMTP Login')}}</dt><dd>{{config.mail_login}}</dd></div>
+          <div class="flex justify-between"><dt class="text-textSecondary">{{_('From Email')}}</dt><dd>{{config.mail_from}}</dd></div>
+        {% else %}
+          <div class="flex justify-between"><dt class="text-textSecondary">{{_('Email Service')}}</dt><dd>{{_('Gmail via Oauth2')}}</dd></div>
+          <div class="flex justify-between"><dt class="text-textSecondary">{{_('From Email')}}</dt><dd>{{config.mail_gmail_token['email']}}</dd></div>
+        {% endif %}
+      {% endif %}
+      </dl>
+      <a class="cw-btn cw-btn--secondary emailconfig" id="admin_edit_email" href="{{url_for('admin.edit_mailsettings')}}">{{_('Edit Email Server Settings')}}</a>
+    </div>
+  </section>
+
+  <section class="cw-card">
+    <div class="cw-card__body">
+      <h2 class="cw-page-title mb-3">{{_('Configuration')}}</h2>
+      <div class="mb-4 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+        <div class="flex justify-between"><span class="text-textSecondary">{{_('Calibre Database Directory')}}</span><span>{{config.config_calibre_dir}}</span></div>
+        <div class="flex justify-between"><span class="text-textSecondary">{{_('Log Level')}}</span><span>{{config.get_log_level()}}</span></div>
+        <div class="flex justify-between"><span class="text-textSecondary">{{_('Port')}}</span><span>{{config.config_port}}</span></div>
+        {% if kobo_support and config.config_port != config.config_external_port %}
+        <div class="flex justify-between"><span class="text-textSecondary">{{_('External Port')}}</span><span>{{config.config_external_port}}</span></div>
+        {% endif %}
+      </div>
+      <div class="mb-4 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
+        <div class="flex justify-between"><span class="text-textSecondary">{{_('Books per Page')}}</span><span>{{config.config_books_per_page}}</span></div>
+        <div class="flex justify-between"><span class="text-textSecondary">{{_('Uploads')}}</span><span>{{ display_bool_setting(config.config_uploading) }}</span></div>
+        <div class="flex justify-between"><span class="text-textSecondary">{{_('Anonymous Browsing')}}</span><span>{{ display_bool_setting(config.config_anonbrowse) }}</span></div>
+        <div class="flex justify-between"><span class="text-textSecondary">{{_('Public Registration')}}</span><span>{{ display_bool_setting(config.config_public_reg) }}</span></div>
+        <div class="flex justify-between"><span class="text-textSecondary">{{_('Magic Link Remote Login')}}</span><span>{{ display_bool_setting(config.config_remote_login) }}</span></div>
+        <div class="flex justify-between"><span class="text-textSecondary">{{_('Reverse Proxy Login')}}</span><span>{{ display_bool_setting(config.config_allow_reverse_proxy_header_login) }}</span></div>
+        {% if config.config_allow_reverse_proxy_header_login %}
+        <div class="flex justify-between"><span class="text-textSecondary">{{_('Reverse Proxy Header Name')}}</span><span>{{ config.config_reverse_proxy_login_header_name }}</span></div>
+        <div class="flex justify-between"><span class="text-textSecondary">{{_('Reverse Proxy Trusted IPs/CIDRs')}}</span><span>{{ config.config_reverse_proxy_trusted_ips }}</span></div>
+        <div class="flex justify-between"><span class="text-textSecondary">{{_('Reverse Proxy Shared Secret Header Name')}}</span><span>{{ config.config_reverse_proxy_login_secret_header_name }}</span></div>
+        <div class="flex justify-between"><span class="text-textSecondary">{{_('Reverse Proxy Shared Secret Header')}}</span><span>{{ display_bool_setting(config.config_reverse_proxy_use_shared_secret) }}</span></div>
+        <div class="flex justify-between"><span class="text-textSecondary">{{_('Reverse Proxy Shared Secret Configured')}}</span><span>{{ display_bool_setting(config.config_reverse_proxy_login_header_secret_e) }}</span></div>
+        {% endif %}
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <a class="cw-btn cw-btn--secondary" id="db_config" href="{{url_for('admin.db_configuration')}}">{{_('Edit Calibre Database Configuration')}}</a>
+        <a class="cw-btn cw-btn--secondary" id="basic_config" href="{{url_for('admin.configuration')}}">{{_('Edit Basic Configuration')}}</a>
+        <a class="cw-btn cw-btn--secondary" id="view_config" href="{{url_for('admin.view_configuration')}}">{{_('Edit UI Configuration')}}</a>
+      </div>
+    </div>
+  </section>
+{%  if feature_support['scheduler'] %}
+  <section class="cw-card">
+    <div class="cw-card__body">
+      <h2 class="cw-page-title mb-3">{{_('Scheduled Tasks')}}</h2>
+        <div class="mb-4 grid grid-cols-1 gap-2 text-sm sm:grid-cols-2 scheduled_tasks_details">
+          <div class="flex justify-between"><span class="text-textSecondary">{{_('Start Time')}}</span><span>{{schedule_time}}</span></div>
+          <div class="flex justify-between"><span class="text-textSecondary">{{_('Maximum Duration')}}</span><span>{{schedule_duration}}</span></div>
+          <div class="flex justify-between"><span class="text-textSecondary">{{_('Generate Thumbnails')}}</span><span>{{ display_bool_setting(config.schedule_generate_book_covers) }}</span></div>
+          <div class="flex justify-between"><span class="text-textSecondary">{{_('Reconnect Calibre Database')}}</span><span>{{ display_bool_setting(config.schedule_reconnect) }}</span></div>
+          <div class="flex justify-between"><span class="text-textSecondary">{{_('Generate Metadata Backup Files')}}</span><span>{{ display_bool_setting(config.schedule_metadata_backup) }}</span></div>
+        </div>
+      <div class="flex flex-wrap gap-2">
+        <a class="cw-btn cw-btn--secondary scheduledtasks" id="admin_edit_scheduled_tasks" href="{{url_for('admin.edit_scheduledtasks')}}">{{_('Edit Scheduled Tasks Settings')}}</a>
+        {% if config.schedule_generate_book_covers %}
+          <button type="button" class="cw-btn cw-btn--secondary" id="admin_refresh_cover_cache">{{_('Refresh Thumbnail Cache')}}</button>
+        {%  endif %}
+      </div>
+    </div>
+  </section>
+{%  endif %}
+  <section class="cw-card">
+    <div class="cw-card__body">
+      <h2 class="cw-page-title mb-3">{{_('Administration')}}</h2>
+      <div class="flex flex-wrap gap-2">
+        <a class="cw-btn cw-btn--secondary" id="debug" href="{{url_for('admin.download_debug')}}">{{_('Download Debug Package')}}</a>
+        <a class="cw-btn cw-btn--secondary" id="logfile" href="{{url_for('admin.view_logfile')}}">{{_('View Logs')}}</a>
+        <button type="button" class="cw-btn cw-btn--secondary" id="restart_database" data-toggle="modal" data-target="#StatusDialog">{{_('Reconnect Calibre Database')}}</button>
+        <button type="button" class="cw-btn cw-btn--danger" id="admin_restart" data-toggle="modal" data-target="#RestartDialog">{{_('Restart')}}</button>
+        <button type="button" class="cw-btn cw-btn--danger" id="admin_stop" data-toggle="modal" data-target="#ShutdownDialog">{{_('Shutdown')}}</button>
+        {% if config.schedule_metadata_backup %}
+          <button type="button" class="cw-btn cw-btn--secondary" id="metadata_backup" data-toggle="modal" data-target="#StatusDialog">{{_('Queue all books for metadata backup')}}</button>
+        {%  endif %}
+      </div>
+    </div>
+  </section>
+  <section class="cw-card">
+    <div class="cw-card__body">
+      <h2 class="cw-page-title mb-3">{{_('Version Information')}}</h2>
+      <table class="cw-table mb-3" id="update_table">
+        <thead>
+          <tr>
+            <th class="w-40">{{_('Version')}}</th>
+            <th>{{_('Details')}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="current_version">
+            <td class="font-medium">{{commit}} </td>
+            <td><i class="text-textSecondary">{{_('Current Version')}}</i></td>
+          </tr>
+        </tbody>
+      </table>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      {%  if feature_support['updater'] %}
+      <div class="hidden" id="update_error"> <span>{{update_error}}</span></div>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" class="cw-btn cw-btn--primary" id="check_for_update">{{_('Check for Update')}}</button>
+        <button type="button" class="cw-btn cw-btn--primary hidden" id="perform_update" data-toggle="modal" data-target="#StatusDialog">{{_('Perform Update')}}</button>
+      </div>
+      {%  endif %}
+    </div>
+  </section>
+</div>
+
+<!-- Modal -->
+<div id="RestartDialog" class="modal fade" role="dialog">
+  <div class="modal-dialog modal-sm">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header bg-info"></div>
+      <div class="modal-body text-center">
+        <p>{{_('Are you sure you want to restart?')}}</p>
+          <div id="spinner" class="spinner"  style="display:none;">
+                <img id="img-spinner" src="{{ url_for('static', filename='css/libs/images/loading-icon.gif') }}"/>
+          </div>
+          <p></p>
+        <button type="button" class="btn btn-default" id="restart" >{{_('OK')}}</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">{{_('Cancel')}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="ShutdownDialog" class="modal fade" role="dialog">
+  <div class="modal-dialog modal-sm">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header bg-info">
+      </div>
+      <div class="modal-body text-center">
+        <p>{{_('Are you sure you want to shutdown?')}}</p>
+        <button type="button" class="btn btn-default" id="shutdown" data-dismiss="modal">{{_('OK')}}</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">{{_('Cancel')}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="StatusDialog" class="modal fade" role="dialog">
+  <div class="modal-dialog modal-sm">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header bg-info text-center">
+      <span id="DialogHeader">{{_('Updating, please do not reload this page')}}</span>
+      </div>
+      <div class="modal-body text-center">
+          <div id="spinner2" class="spinner2"  style="display:none;">
+                <img id="img-spinner2" src="{{ url_for('static', filename='css/libs/images/loading-icon.gif') }}"/>
+          </div>
+          <p></p>
+         <div id="DialogContent"></div>
+          <p></p>
+        <button type="button" class="btn btn-default hidden" id="DialogFinished" data-dismiss="modal">{{_('OK')}}</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block modal %}
+{{ change_confirm_modal() }}
+{% endblock %}

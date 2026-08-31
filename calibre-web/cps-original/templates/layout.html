@@ -1,0 +1,248 @@
+{% from 'modal_dialogs.html' import restrict_modal, delete_book, filechooser_modal, delete_confirm_modal, change_confirm_modal %}
+{% import 'image.html' as image %}
+<!DOCTYPE html>
+<html lang="{{ current_user.locale }}">
+  <head>
+    <title>{{instance}} | {{title}}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="mobile-web-app-capable" content="yes">
+    {% if g.google_site_verification|length > 0 %}
+      <meta name="google-site-verification" content="{{g.google_site_verification}}">
+    {% endif %}
+    <!-- Bootstrap -->
+    <link rel="apple-touch-icon" sizes="140x140" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link href="{{ url_for('static', filename='css/libs/bootstrap.min.css') }}" rel="stylesheet" media="screen">
+    {% block header %}{% endblock %}
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" media="screen">
+    <link href="{{ url_for('static', filename='css/upload.css') }}" rel="stylesheet" media="screen">
+    {% if g.current_theme == 1 %}
+       <link href="{{ url_for('static', filename='css/caliBlur.css') }}" rel="stylesheet" media="screen">
+       <link href="{{ url_for('static', filename='css/caliBlur_override.css') }}" rel="stylesheet" media="screen">
+    {% endif %}
+    <!-- Tailwind CSS (UI Rewrite 主样式；与既有 Bootstrap 渐进共存，详见 docs/ui-rewrite) -->
+    <link href="{{ url_for('static', filename='css/tailwind.css') }}" rel="stylesheet" media="screen">
+    <!-- Lucide Icons -->
+    <script src="{{ url_for('static', filename='js/libs/lucide.min.js') }}" defer></script>
+    <!-- FOUC 保护：渲染前应用暗色 class -->
+    <script>
+      (function () {
+        try {
+          var s = localStorage.getItem('calibre-theme');
+          var dark = s === 'dark' || (!s && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        } catch (e) { var dark = false; }
+        if (dark) document.documentElement.classList.add('dark');
+      })();
+    </script>
+  </head>
+  <body class="{{ page }} {{ bodyClass }}{% if g.current_theme == 1 %} blur{% endif %}" data-text="{{_('Home')}}" data-textback="{{_('Back')}}" x-data x-on:keydown.escape.window="$store.ui.closeSidebar()" x-on:keydown.ctrl.k.prevent.window="$store.ui.focusSearch()" x-on:keydown.slash.prevent.window="$store.ui.focusSearch()">
+
+  <div class="cw-app">
+    <aside class="cw-sidebar">
+      <div class="cw-sidebar__head">{{instance}}</div>
+      <nav class="cw-sidebar__nav" aria-label="{{_('Browse')}}">
+        <ul class="list-unstyled">
+          {% for element in sidebar %}
+            {% if current_user.check_visibility(element['visibility']) and element['public'] %}
+              <li><a class="cw-sidebar__link{% if page == element['page'] %} cw-sidebar__link--active{% endif %}" href="{% if element['no_param'] %}{{url_for(element['link'], data=element['page'])}}{%else%}{{url_for(element['link'], data=element['page'], sort_param='stored')}}{% endif %}" {% if page == element['page'] %}aria-current="page"{% endif %}>{{ _(element['text']) }}</a></li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+        {% if current_user.is_authenticated or g.allow_anonymous %}
+        <div class="cw-sidebar__head public-shelves">书架</div>
+        <ul class="list-unstyled">
+          {% for shelf in g.shelves_access %}
+            <li><a class="cw-sidebar__link" href="{{url_for('shelf.show_shelf', shelf_id=shelf.id)}}">{{shelf.name|shortentitle(40)}}{% if shelf.is_public == 1 %} {{_('(Public)')}}{% endif %} <span class="cw-badge">{{shelf.books.all()|length}}</span></a></li>
+          {% endfor %}
+          {% if not current_user.is_anonymous %}
+            <li><a class="cw-sidebar__link" id="nav_createshelf" href="{{url_for('shelf.create_shelf')}}">{{_('Create a Shelf')}}</a></li>
+            <li><a class="cw-sidebar__link{% if page == 'stat' %} cw-sidebar__link--active{% endif %}" id="nav_about" href="{{url_for('about.stats')}}">{{_('About')}}</a></li>
+          {% endif %}
+        </ul>
+        {% endif %}
+      </nav>
+    </aside>
+
+    <aside id="mobile-nav" class="cw-sidebar cw-sidebar--drawer" role="dialog" aria-modal="true" aria-label="{{_('Browse')}}" :class="$store.ui.sidebarOpen ? 'cw-sidebar--open' : ''" x-cloak>
+      <div class="cw-sidebar__head flex items-center justify-between">
+        <span id="drawer-title">{{instance}}</span>
+        <button type="button" class="cw-btn--icon" @click="$store.ui.closeSidebar()" aria-label="{{_('Close')}}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <nav class="cw-sidebar__nav" aria-label="{{_('Browse')}}">
+        <ul class="list-unstyled">
+          {% for element in sidebar %}
+            {% if current_user.check_visibility(element['visibility']) and element['public'] %}
+              <li><a class="cw-sidebar__link{% if page == element['page'] %} cw-sidebar__link--active{% endif %}" href="{% if element['no_param'] %}{{url_for(element['link'], data=element['page'])}}{%else%}{{url_for(element['link'], data=element['page'], sort_param='stored')}}{% endif %}" @click="$store.ui.closeSidebar()" {% if page == element['page'] %}aria-current="page"{% endif %}>{{ _(element['text']) }}</a></li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+        {% if current_user.is_authenticated or g.allow_anonymous %}
+        <div class="cw-sidebar__head public-shelves">书架</div>
+        <ul class="list-unstyled">
+          {% for shelf in g.shelves_access %}
+            <li><a class="cw-sidebar__link" href="{{url_for('shelf.show_shelf', shelf_id=shelf.id)}}" @click="$store.ui.closeSidebar()">{{shelf.name|shortentitle(40)}}{% if shelf.is_public == 1 %} {{_('(Public)')}}{% endif %} <span class="cw-badge">{{shelf.books.all()|length}}</span></a></li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </nav>
+    </aside>
+
+    <div x-show="$store.ui.sidebarOpen" x-transition.opacity class="fixed inset-0 z-40 bg-black/40 lg:hidden" @click="$store.ui.closeSidebar()" x-cloak></div>
+
+    <div class="cw-main">
+      <header class="cw-header">
+        <button type="button" class="cw-btn--icon lg:hidden" @click="$store.ui.openSidebar()" :aria-expanded="$store.ui.sidebarOpen ? 'true' : 'false'" aria-controls="mobile-nav" aria-label="{{_('Toggle Navigation')}}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+
+        {% if current_user.is_authenticated or g.allow_anonymous %}
+        <form class="cw-search cw-search--flex" role="search" action="{{url_for('search.simple_search')}}" method="GET">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <label for="query" class="sr-only">{{_('Search')}}</label>
+          <input type="text" class="cw-input" id="query" name="query" placeholder="{{_('Search Library')}}" value="{{searchterm}}">
+        </form>
+        {% endif %}
+
+        <div class="ml-auto flex items-center gap-1">
+          {% if current_user.role_upload() and g.allow_upload %}
+          <form id="form-upload" action="/api/upload" class="hidden md:block" data-title="{{_('Uploading...')}}" data-footer="{{_('Close')}}" data-failed="{{_('Error')}}" data-message="{{_('Upload done, processing, please wait...')}}" method="post" enctype="multipart/form-data">
+            <input id="btn-upload" name="btn-upload" type="file" accept="{% for format in accept %}.{% if format != ''%}{{format}}{% else %}*{% endif %}{{ ',' if not loop.last }}{% endfor %}" multiple>
+            <input class="hide" id="btn-upload2" name="btn-upload2" type="file" accept="{% for format in accept %}.{% if format != ''%}{{format}}{% else %}*{% endif %}{{ ',' if not loop.last }}{% endfor %}">
+            <button type="button" class="cw-btn cw-btn--secondary" onclick="document.getElementById('btn-upload').click()">{{_('Upload')}}</button>
+          </form>
+          <form id="form-upload" action="/api/upload" class="md:hidden" data-title="{{_('Uploading...')}}" data-footer="{{_('Close')}}" data-failed="{{_('Error')}}" data-message="{{_('Upload done, processing, please wait...')}}" method="post" enctype="multipart/form-data">
+            <input id="btn-upload-m" name="btn-upload" type="file" accept="{% for format in accept %}.{% if format != ''%}{{format}}{% else %}*{% endif %}{{ ',' if not loop.last }}{% endfor %}" multiple>
+            <button type="button" class="cw-btn--icon md:hidden" aria-label="{{_('Upload')}}">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </button>
+          </form>
+          {% endif %}
+
+          {% if not current_user.is_anonymous and not simple %}
+          <a class="cw-btn--icon" id="top_tasks" href="{{url_for('tasks.get_tasks_status')}}" aria-label="{{_('Tasks')}}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </a>
+          <a class="cw-btn--icon" id="top_mytasks" href="/tasks" aria-label="我的上传">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </a>
+          {% endif %}
+
+          {% if current_user.role_admin() %}
+          <a class="cw-btn--icon" id="top_admin" href="{{url_for('admin.admin')}}" aria-label="{{_('Admin')}}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </a>
+          {% endif %}
+
+          <button type="button" class="cw-btn--icon" @click="$store.ui.toggleDark()" aria-label="切换护眼模式">
+            <svg x-show="!$store.ui.dark" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <svg x-show="$store.ui.dark" x-cloak xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          </button>
+
+          {% if current_user.is_authenticated or g.allow_anonymous %}
+          <div class="cw-dropdown">
+            <button type="button" class="cw-btn--icon" @click="drop = !drop" @click.outside="drop = false" :aria-expanded="drop ? 'true' : 'false'" aria-haspopup="menu" aria-label="{{_('Account')}}" x-data="{ drop: false }">
+              <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">{{ current_user.name[:1]|upper }}</span>
+            </button>
+            <div x-show="drop" x-transition x-cloak class="cw-dropdown__menu" role="menu" aria-label="{{_('Account')}}" x-data="{ drop: false }">
+              {% if not current_user.is_anonymous %}
+              <a class="cw-dropdown__item" role="menuitem" id="top_user" href="{{url_for('web.profile')}}">{{current_user.name}}</a>
+              <a class="cw-dropdown__item" role="menuitem" id="logout" href="{{url_for('web.logout', next=(request.path + "?" + request.query_string.decode("utf-8")).rstrip("?"))}}">{{_('Logout')}}</a>
+              {% else %}
+              <a class="cw-dropdown__item" role="menuitem" id="login" href="{{url_for('web.login')}}">{{_('Login')}}</a>
+              {% if g.allow_registration %}<a class="cw-dropdown__item" role="menuitem" id="register" href="{{url_for('web.register')}}">{{_('Register')}}</a>{% endif %}
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </header>
+
+      <div class="cw-main__inner">
+        {% for message in get_flashed_messages(with_categories=True) %}
+          {% if message[0] == "error" %}
+            <div id="flash_danger" class="cw-badge cw-badge--danger mb-2 block" role="alert">{{ message[1] }}</div>
+          {% endif %}
+          {% if message[0] == "info" %}
+            <div id="flash_info" class="cw-badge mb-2 block" role="status">{{ message[1] }}</div>
+          {% endif %}
+          {% if message[0] == "warning" %}
+            <div id="flash_warning" class="cw-badge cw-badge--primary mb-2 block" role="alert">{{ message[1] }}</div>
+          {% endif %}
+          {% if message[0] == "success" %}
+            <div id="flash_success" class="cw-badge cw-badge--success mb-2 block" role="status">{{ message[1] }}</div>
+          {% endif %}
+        {% endfor %}
+        {% block flash %}{% endblock %}
+
+        {% block body %}{% endblock %}
+
+        {% if pagination and (pagination.has_next or pagination.has_prev) %}
+        <nav class="mt-6 flex justify-center" aria-label="pagination">
+          <ul class="cw-pagination">
+            {% if pagination.has_prev %}
+            <li><a class="cw-pagination__btn" aria-label="previous page" href="{{ (pagination.page - 1)|url_for_other_page }}">&laquo;</a></li>
+            {% endif %}
+            {% for page in pagination.iter_pages() %}
+              {% if page %}
+                {% if page != pagination.page %}
+                  <li><a class="cw-pagination__btn" aria-label="to page {{ page }}" href="{{ (page)|url_for_other_page }}">{{ page }}</a></li>
+                {% else %}
+                  <li><a class="cw-pagination__btn cw-pagination__btn--active" aria-label="to page {{ page }}" href="{{ (page)|url_for_other_page }}" aria-current="page">{{ page }}</a></li>
+                {% endif %}
+              {% else %}
+                <li><span class="cw-pagination__btn" aria-hidden="true">…</span></li>
+              {% endif %}
+            {% endfor %}
+            {% if pagination.has_next %}
+              <li><a class="cw-pagination__btn" aria-label="next page" href="{{ (pagination.page + 1)|url_for_other_page }}">&raquo;</a></li>
+            {% endif %}
+          </ul>
+        </nav>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+    <div class="modal fade" id="bookDetailsModal" tabindex="-1" role="dialog" aria-labelledby="bookDetailsModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="{{_('Close')}}"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="bookDetailsModalLabel">{{_('Book Details')}}</h4>
+          </div>
+          <div class="modal-body">...</div>
+          <div class="modal-footer">
+            <button type="button" id="details_close" class="btn btn-default" data-dismiss="modal">{{_('Close')}}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% block modal %}{% endblock %}
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="{{ url_for('static', filename='js/libs/jquery.min.js') }}"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="{{ url_for('static', filename='js/libs/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/libs/underscore-umd-min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/libs/intention.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/libs/context.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/libs/plugins.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/libs/jquery.form.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/uploadprogress.js') }}"> </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% if g.current_theme == 1 %}
+      <script src="{{ url_for('static', filename='js/libs/jquery.visible.min.js') }}"></script>
+      <script src="{{ url_for('static', filename='js/libs/compromise.min.js') }}"></script>
+      <script src="{{ url_for('static', filename='js/libs/readmore.min.js') }}"></script>
+      <script src="{{ url_for('static', filename='js/caliBlur.js') }}"></script>
+    {% endif %}
+    <!-- UI Rewrite (Phase 0) 轻量交互层：Alpine + 主题 + 图标初始化 -->
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/libs/alpine.min.js') }}" defer></script>
+    {% block js %}{% endblock %}
+  </body>
+</html>

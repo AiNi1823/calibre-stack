@@ -231,17 +231,21 @@
       </div>
     </div>
 
-    <div class="modal fade" id="bookDetailsModal" tabindex="-1" role="dialog" aria-labelledby="bookDetailsModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="{{_('Close')}}"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="bookDetailsModalLabel">{{_('Book Details')}}</h4>
-          </div>
-          <div class="modal-body">...</div>
-          <div class="modal-footer">
-            <button type="button" id="details_close" class="btn btn-default" data-dismiss="modal">{{_('Close')}}</button>
-          </div>
+    <!-- Book Detail Drawer (Alpine position:fixed overlay; replaces legacy Bootstrap modal) -->
+    <div class="cw-book-detail" x-show="$store.ui.bookDetailOpen" x-transition.opacity x-cloak
+         @keydown.escape.window="$store.ui.closeBookDetail()" role="dialog" aria-modal="true" aria-labelledby="bookDetailTitle">
+      <div class="cw-book-detail__backdrop" @click="$store.ui.closeBookDetail()"></div>
+      <div class="cw-book-detail__panel" x-transition>
+        <header class="cw-book-detail__head">
+          <h2 id="bookDetailTitle" class="cw-book-detail__title">{{_('Book Details')}}</h2>
+          <button type="button" class="cw-btn--icon" @click="$store.ui.closeBookDetail()" aria-label="{{_('Close')}}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </header>
+        <div class="cw-book-detail__scroll">
+          <div x-show="$store.ui.bookDetailBusy" x-cloak class="cw-book-detail__state">{{_('Loading…')}}</div>
+          <div x-show="$store.ui.bookDetailError" x-cloak class="cw-book-detail__state cw-book-detail__state--error">{{_('Failed to load book.')}} <a href="#" @click.prevent="$store.ui.openBookDetail($store.ui._lastHref)">{{_('Retry')}}</a></div>
+          <div id="bookDetailBody" x-show="!$store.ui.bookDetailBusy" x-cloak></div>
         </div>
       </div>
     </div>

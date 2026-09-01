@@ -36,13 +36,13 @@
   <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
     {% for entry in entries %}
     <article class="cw-book-card session" id="books">
-      <a class="cw-book-cover block" href="{{ url_for('web.show_book', book_id=entry.Books.id) }}" {% if simple==false %}data-toggle="modal" data-target="#bookDetailsModal" data-remote="false"{% endif %}>
+      <a class="cw-book-cover block" href="{{ url_for('web.show_book', book_id=entry.Books.id) }}" {% if simple==false %}@click="$store.ui.openBookDetail($event.currentTarget.href, $event)"{% endif %}>
           <span class="block h-full w-full" title="{{entry.Books.title}}">
             {{ image.book_cover(entry.Books) }}
           </span>
       </a>
       <div class="cw-book-card__meta">
-        <a href="{{ url_for('web.show_book', book_id=entry.Books.id) }}" {% if simple==false %}data-toggle="modal" data-target="#bookDetailsModal" data-remote="false"{% endif %}>
+        <a href="{{ url_for('web.show_book', book_id=entry.Books.id) }}" {% if simple==false %}@click="$store.ui.openBookDetail($event.currentTarget.href, $event)"{% endif %}>
           <p title="{{entry.Books.title}}" class="cw-book-title">{{entry.Books.title|shortentitle}}</p>
         </a>
         <p class="cw-book-author">

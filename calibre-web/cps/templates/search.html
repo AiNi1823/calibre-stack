@@ -58,12 +58,12 @@
       <ul class="cw-result-list">
         {% for entry in entries %}
         <li class="cw-result-item">
-          <a class="cw-result-item__cover" href="{{ url_for('web.show_book', book_id=entry.Books.id) }}" {% if simple==false %}data-toggle="modal" data-target="#bookDetailsModal" data-remote="false"{% endif %}>
+          <a class="cw-result-item__cover" href="{{ url_for('web.show_book', book_id=entry.Books.id) }}" {% if simple==false %}@click="$store.ui.openBookDetail($event.currentTarget.href, $event)"{% endif %}>
             <span class="block h-full w-full" title="{{entry.Books.title}}">{{ image.book_cover(entry.Books) }}</span>
           </a>
           <div class="cw-result-item__body">
             <div class="flex items-center gap-2">
-              <a href="{{ url_for('web.show_book', book_id=entry.Books.id) }}" {% if simple==false %}data-toggle="modal" data-target="#bookDetailsModal" data-remote="false"{% endif %}>
+              <a href="{{ url_for('web.show_book', book_id=entry.Books.id) }}" {% if simple==false %}@click="$store.ui.openBookDetail($event.currentTarget.href, $event)"{% endif %}>
                 <p class="cw-book-title font-semibold">{{entry.Books.title|shortentitle}}</p>
               </a>
               {% if entry[2] is defined and entry[2] == True %}

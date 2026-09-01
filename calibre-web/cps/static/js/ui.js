@@ -60,5 +60,52 @@ document.addEventListener('alpine:init', function () {
       if (form) form.submit();
       this.closeUploadModal();
     },
+    bookDetailOpen: false,
+    bookDetailBusy: false,
+    bookDetailError: false,
+    openBookDetail(href, ev) {
+      if (ev) ev.preventDefault();
+      this._lastHref = href;
+      this._lastFocus = document.activeElement;
+      this.bookDetailOpen = true;
+      this.bookDetailBusy = true;
+      this.bookDetailError = false;
+      const body = document.getElementById('bookDetailBody');
+      if (body) body.innerHTML = '';
+      // Signal the server to render only the detail fragment (is_xhr => fragment.html)
+      fetch(href, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        credentials: 'same-origin'
+      })
+        .then(function (r) { return r.text(); })
+        .then(function (html) {
+          if (body) { body.innerHTML = html; }
+        })
+        .catch(function () {
+          this.bookDetailError = true;
+        }.bind(this))
+        .finally(function () {
+          this.bookDetailBusy = false;
+          this._initBookDetail();
+        }.bind(this));
+    },
+    closeBookDetail() {
+      this.bookDetailOpen = false;
+      if (this._lastFocus && typeof this._lastFocus.focus === 'function') {
+        this._lastFocus.focus();
+        this._lastFocus = null;
+      }
+    },
+    _initBookDetail() {
+      // Re-wire the read-toggle that details.js normally binds on page load
+      var cb = document.getElementById('have_read_cb');
+      if (cb && !cb.dataset.bound) {
+        cb.dataset.bound = '1';
+        cb.addEventListener('change', function () {
+          var form = document.getElementById('have_read_form');
+          if (form) form.submit();
+        });
+      }
+    },
   });
 });

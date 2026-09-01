@@ -166,8 +166,11 @@
                 <p class="cw-book-meta">
                     <span class="glyphicon glyphicon-link"></span>
                     {% for identifier in entry.identifiers %}
-                        <a href="{{ identifier|escape }}" target="_blank" class="cw-btn cw-btn--sm cw-btn--outline"
+                        {% set identifier_url = identifier|escape %}
+                        {% if identifier_url %}
+                        <a href="{{ identifier_url }}" target="_blank" class="cw-btn cw-btn--sm cw-btn--outline"
                            role="button">{{ identifier.format_type() }}</a>
+                        {% endif %}
                     {% endfor %}
                 </p>
             {% endif %}

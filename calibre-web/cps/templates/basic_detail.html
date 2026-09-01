@@ -1,81 +1,129 @@
-{% extends "basic_layout.html" %}
-
+{% extends "layout.html" %}
 {% block body %}
-<div>
-
-<h2 id="title">{{ entry.title }}</h2>
-<div>
-  {% for author in entry.ordered_authors %}
-    <p>{{ author.name.replace("|",",") }}</p>
-  {% endfor %}
-</div>
-
-<div class="cover">
-    <img title="{{ entry.title }}" src="{{ url_for('web.get_cover', book_id=entry.id, resolution='og', c=entry|last_modified) }}"/>
-</div>
-
-{% if current_user.role_download() %}
-  {% if entry.data|length %}
-    <div>
-      <h2>Download</h2>
-        {% for format in entry.data %}
-          <p>
-            <a href="{{ url_for('web.download_link', book_id=entry.id, book_format=format.format|lower, anyname=entry.id|string+'.'+format.format|lower) }}">
-              {{ format.format }} ({{ format.uncompressed_size|filesizeformat }})</a>
+<div class="cw-book-detail-overlay" x-data="{ closed: false }" x-show="!closed" x-cloak>
+  <div class="cw-book-detail-backdrop" @click="closeBookDetail()"></div>
+  <div class="cw-book-detail-drawer" role="dialog" aria-modal="true" aria-labelledby="book-detail-title">
+    <button type="button" class="cw-book-detail-close" @click="closeBookDetail()" aria-label="{{_('Close')}}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    <div class="cw-book-detail-scroll">
+      <div class="cw-book-detail__layout">
+        <div class="cw-book-detail__cover">
+          <img id="detailcover" title="{{ entry.title }}"
+               src="{{ url_for('web.get_cover', book_id=entry.id, resolution='og', c=entry|last_modified) }}"/>
+          {% if not current_user.is_anonymous %}
+          {% if entry.read_status %}
+          <span class="cw-status-badge cw-status-badge--finished">{{ _('Read') }}</span>
+          {% else %}
+          <span class="cw-status-badge cw-status-badge--unread">{{ _('Unread') }}</span>
+          {% endif %}
+          {% endif %}
+        </div>
+        <div class="cw-book-detail__meta">
+          <h1 id="book-detail-title" class="cw-title">{{ entry.title }}</h1>
+          <p class="cw-book-author">
+            {% for author in entry.ordered_authors %}
+              <a href="{{ url_for('web.books_list',  data='author', sort_param='stored', book_id=author.id ) }}">{{ author.name.replace('|',',') }}</a>
+              {% if not loop.last %}
+                &amp;
+              {% endif %}
+            {% endfor %}
           </p>
-        {% endfor %}
+          {% if entry.ratings.__len__() > 0 %}
+            <div class="cw-book-meta mb-2">
+              {% for number in range((entry.ratings[0].rating/2)|int(2)) %}
+                <span class="glyphicon glyphicon-star good"></span>
+                {% if loop.last and loop.index < 5 %}
+                  {% for numer in range(5 - loop.index) %}
+                    <span class="glyphicon glyphicon-star-empty"></span>
+                  {% endfor %}
+                {% endif %}
+              {% endfor %}
+            </div>
+          {% endif %}
+          {% if entry.series|length > 0 %}
+            <p class="cw-book-meta">{{ _("Book %(index)s of %(range)s", index=entry.series_index|formatfloat(2), range=entry.series[0].name) }}</p>
+          {% endif %}
+          {% if entry.languages|length > 0 %}
+            <p class="cw-book-meta">{{_('Language')}}: {% for language in entry.languages %}{{language.language_name}}{% if not loop.last %}, {% endif %}{% endfor %}</p>
+          {% endif %}
+          {% if entry.identifiers|length > 0 %}
+            <p class="cw-book-meta flex flex-wrap gap-1">
+              <span class="glyphicon glyphicon-link"></span>
+              {% for identifier in entry.identifiers %}
+                {% set identifier_url = identifier|escape %}
+                {% if identifier_url %}
+                <a href="{{ identifier_url }}" target="_blank" class="cw-btn cw-btn--sm cw-btn--outline" role="button">{{ identifier.format_type() }}</a>
+                {% else %}
+                <span class="cw-btn cw-btn--sm cw-btn--outline">{{ identifier.format_type() }}</span>
+                {% endif %}
+              {% endfor %}
+            </p>
+          {% endif %}
+          {% if entry.tags|length > 0 %}
+            <p class="cw-book-meta flex flex-wrap gap-1">
+              <span class="glyphicon glyphicon-tags"></span>
+              {% for tag in entry.tags %}
+                <a href="{{ url_for('web.books_list', data='category', sort_param='stored', book_id=tag.id) }}"
+                   class="cw-btn cw-btn--sm cw-btn--outline" role="button">{{ tag.name }}</a>
+              {% endfor %}
+            </p>
+          {% endif %}
+          {% if entry.publishers|length > 0 %}
+            <p class="cw-book-meta">{{ _('Publisher') }}:
+              <a href="{{ url_for('web.books_list', data='publisher', sort_param='stored', book_id=entry.publishers[0].id ) }}">{{ entry.publishers[0].name }}</a>
+            </p>
+          {% endif %}
+          {% if (entry.pubdate|string)[:10] != '0101-01-01' %}
+            <p class="cw-book-meta">{{ _('Published') }}: {{ entry.pubdate|formatdate }}</p>
+          {% endif %}
+          {% if current_user.is_authenticated %}
+            <div class="cw-detail__toggles">
+              <form id="have_read_form" action="{{ url_for('web.toggle_read', book_id=entry.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label class="cw-input inline-flex items-center gap-2">
+                  <input id="have_read_cb" class="cw-checkbox" data-checked="{{ _('Mark As Unread') }}" data-unchecked="{{ _('Mark As Read') }}" type="checkbox" {% if entry.read_status %}checked{% endif %}>
+                  <span>{{ _('Read') }}</span>
+                </label>
+              </form>
+            </div>
+          {% endif %}
+          {% if entry.comments|length > 0 and entry.comments[0].text|length > 0 %}
+            <div class="cw-detail__comments mt-4">
+              <h2 class="cw-subtitle">{{ _('Description:') }}</h2>
+              <div class="cw-body">{{ entry.comments[0].text|clean_string|safe }}</div>
+            </div>
+          {% endif %}
+          {% if current_user.role_download() and entry.data|length %}
+            <div class="cw-detail__download mt-4">
+              <h2 class="cw-subtitle">{{ _('Download') }}</h2>
+              {% for format in entry.data %}
+                <a href="{{ url_for('web.download_link', book_id=entry.id, book_format=format.format|lower, anyname=entry.id|string+'.'+format.format|lower|replace('kepub', 'kepub.epub')) }}"
+                   class="cw-btn cw-btn--secondary cw-btn--sm" style="margin-bottom:4px;">
+                  {{ format.format }} ({{ format.uncompressed_size|filesizeformat }})
+                </a>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
     </div>
-  {% endif %}
-{% endif %}
-
-<h2>Details</h2>
-
-{% if entry.series|length > 0 %}
-  <p>{{ _("Book %(index)s of %(range)s", index=entry.series_index|formatfloat(2), range=entry.series[0].name|e) }}</p>
-{% endif %}
-
-{% if entry.languages|length > 0 %}
-  <div>
-    <p>
-      <span>
-        {{_('Language')}}: {% for language in entry.languages %}{{language.language_name}}{% if not loop.last %}, {% endif %}{% endfor %}
-      </span>
-    </p>
   </div>
-{% endif %}
-
-{% if entry.identifiers|length > 0 %}
-  <div>
-    <p>
-      <span></span>
-      {% for identifier in entry.identifiers %}
-          <p>{{ identifier.format_type() }}: {{ identifier|escape }}</p>
-      {% endfor %}
-    </p>
-  </div>
-{% endif %}
-
-{% if entry.publishers|length > 0 %}
-  <div>
-    <p>
-      <span>{{ _('Publisher') }}:
-        <span>{{ entry.publishers[0].name }}</span>
-      </span>
-    </p>
-  </div>
-{% endif %}
-
-{% if (entry.pubdate|string)[:10] != '0101-01-01' %}
-  <div>
-    <p>{{ _('Published') }}: {{ entry.pubdate|formatdate }} </p>
-  </div>
-{% endif %}
-
-{% if entry.comments|length > 0 and entry.comments[0].text|length > 0 %}
-    <div>
-        <h2 id="decription">{{ _('Description:') }}</h2>
-        {{ entry.comments[0].text|clean_string|safe }}
-    </div>
-{% endif %}
 </div>
+{% endblock %}
+{% block js %}
+<script src="{{ url_for('static', filename='js/details.js') }}"></script>
+<script>
+window.closeBookDetail = function () {
+  var overlay = document.querySelector('.cw-book-detail-overlay');
+  if (!overlay) return;
+  overlay.style.display = 'none';
+  if (window.history.length > 1) {
+    window.history.back();
+  } else {
+    window.location.href = "/";
+  }
+};
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') window.closeBookDetail();
+});
+</script>
 {% endblock %}

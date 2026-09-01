@@ -5,33 +5,33 @@
     <div class="filterheader mb-3">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       {% if entries.__len__() and data == 'author' %}
-        <div id="sort_name" class="btn btn-primary"><b>B,A <-> A B</b></div>
+        <button id="sort_name" class="cw-btn cw-btn--sm" type="button"><b>B,A <-> A B</b></button>
       {% endif %}
-      <div id="asc" data-order="{{ order }}" data-id="{{ data }}" class="btn btn-primary {% if order == 1 %} active{% endif%}"><span class="glyphicon glyphicon-sort-by-alphabet"></span></div>
-      <div id="desc" data-id="{{ data }}" class="btn btn-primary{% if order == 0 %} active{% endif%}"><span class="glyphicon glyphicon-sort-by-alphabet-alt"></span></div>
+      <button id="asc" data-order="{{ order }}" data-id="{{ data }}" type="button" class="cw-btn cw-btn--sm{% if order == 1 %} is-active{% endif %}"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5h10"/><path d="M11 9h7"/><path d="M11 13h5"/><path d="m3 17 3 3 3-3"/><path d="M6 18V4"/></svg></button>
+      <button id="desc" data-id="{{ data }}" type="button" class="cw-btn cw-btn--sm{% if order == 0 %} is-active{% endif %}"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5h10"/><path d="M11 9h7"/><path d="M11 13h5"/><path d="m3 17 3 3 3-3"/><path d="M6 18V4"/></svg></button>
       {% if charlist|length %}
-      <div id="all" class="active btn btn-primary {% if charlist|length > 9 %}hidden-sm{% endif %}">{{_('All')}}</div>
+      <button id="all" type="button" class="cw-btn cw-btn--sm is-active{% if charlist|length > 9 %} hidden-sm{% endif %}">{{_('All')}}</button>
       {% endif %}
-      <div class="btn-group character {% if charlist|length > 9 %}hidden-sm{% endif %}" role="group">
+      <div class="cw-index-chars{% if charlist|length > 9 %} hidden-sm{% endif %}" role="group">
         {% for char in charlist%}
-        <div class="btn btn-primary char">{{char[0]}}</div>
+        <button type="button" class="cw-btn cw-btn--sm char">{{char[0]}}</button>
         {% endfor %}
       </div>
 
       {% if data == "series" %}
-      <button class="update-view btn btn-primary" data-target="series_view" id="grid-button" data-view="grid">{{_('Grid')}}</button>
+      <button class="cw-btn cw-btn--sm update-view" data-target="series_view" id="grid-button" data-view="grid">{{_('Grid')}}</button>
       {% endif %}
     </div>
-  <div class="cw-nav-grid">
-    <div id="list" class="cw-nav-col">
+  <div class="cw-index-grid" id="index-grid">
+    <div id="list" class="cw-index-col">
     {% for entry in entries %}
       {% if loop.index0 == (loop.length/2+loop.length%2)|int and loop.length > 20 %}
         </div>
-        <div id="second" class="cw-nav-col">
+        <div id="second" class="cw-index-col">
       {% endif %}
-      <div class="cw-nav-item row" {% if entry[0].sort %}data-name="{{entry[0].name}}"{% endif %} data-id="{% if entry[0].sort %}{{entry[0].sort}}{% else %}{% if entry[0].format %}{{entry[0].format}}{% else %}{% if entry[0].rating %}{{entry[0].rating}}{% else %}{{entry[0].name}}{% endif %}{% endif %}{% endif %}">
-        <a id="list_{{loop.index0}}" class="cw-nav-item__link" href="{% if entry.format %}{{url_for('web.books_list', data=data, sort_param='stored', book_id=entry.format )}}{% else %}{{url_for('web.books_list', data=data, sort_param='stored', book_id=entry[0].id )}}{% endif %}">
-          <span class="cw-nav-item__name">
+      <div class="cw-index-item" {% if entry[0].sort %}data-name="{{entry[0].name}}"{% endif %} data-id="{% if entry[0].sort %}{{entry[0].sort}}{% else %}{% if entry[0].format %}{{entry[0].format}}{% else %}{% if entry[0].rating %}{{entry[0].rating}}{% else %}{{entry[0].name}}{% endif %}{% endif %}{% endif %}">
+        <a id="list_{{loop.index0}}" class="cw-index-item__link" href="{% if entry.format %}{{url_for('web.books_list', data=data, sort_param='stored', book_id=entry.format )}}{% else %}{{url_for('web.books_list', data=data, sort_param='stored', book_id=entry[0].id )}}{% endif %}">
+          <span class="cw-index-item__name">
           {% if entry.name %}
           <span class="rating">
           {% for number in range(entry.name|int) %}
@@ -50,7 +50,7 @@
             {{entry[0].name}}{% endif %}{% endif %}
           </span>
         </a>
-        <span class="cw-nav-item__count">{{entry[1]}}</span>
+        <span class="cw-index-item__count">{{entry[1]}}</span>
       </div>
     {% endfor %}
     </div>

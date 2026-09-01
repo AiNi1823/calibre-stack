@@ -123,6 +123,8 @@ class Identifiers(Base):
         format_type = self.type.lower()
         if format_type == 'amazon':
             return "Amazon"
+        elif format_type == 'asin':
+            return "ASIN"
         elif format_type.startswith("amazon_"):
             label_amazon = "Amazon.{0}"
             country_code = format_type[7:].lower()
@@ -164,10 +166,16 @@ class Identifiers(Base):
         else:
             return self.type
 
+    def is_valid_asin(self):
+        import re
+        return bool(re.match(r'^B[0-9A-Z]{9}$', self.val, re.IGNORECASE))
+
     def __repr__(self):
         format_type = self.type.lower()
         if format_type == "amazon" or format_type == "asin":
-            return "https://amazon.com/dp/{0}".format(self.val)
+            if self.is_valid_asin():
+                return "https://amazon.com/dp/{0}".format(self.val)
+            return ""
         elif format_type.startswith('amazon_'):
             link_amazon = "https://amazon.{0}/dp/{1}"
             country_code = format_type[7:].lower()

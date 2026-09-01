@@ -169,7 +169,9 @@
                         {% set identifier_url = identifier|escape %}
                         {% if identifier_url %}
                         <a href="{{ identifier_url }}" target="_blank" class="cw-btn cw-btn--sm cw-btn--outline"
-                           role="button">{{ identifier.format_type() }}</a>
+                           role="button">{{ identifier.format_type() }} · {{ identifier.val }}</a>
+                        {% else %}
+                        <span class="cw-btn cw-btn--sm cw-btn--outline">{{ identifier.format_type() }} · {{ identifier.val }}</span>
                         {% endif %}
                     {% endfor %}
                 </p>

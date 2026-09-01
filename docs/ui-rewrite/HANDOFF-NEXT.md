@@ -5,10 +5,22 @@
 > 施工对象：vendored 源码树 `calibre-web/`（Calibre-Web 0.6.27）。
 > 约束：后端 `web.py/db.py/helper.py` 不改；UI 渐进迁移；每阶段 commit+push。
 
-## 0. 当前施工方向 = P15（Final Design Spec 实施）
-> 完整指令/改动清单见 `docs/ui-rewrite/15-phase15-final-design-spec.md`。P14（Desktop Density）已完成；P13（统一收口）见 §0b；P0–P12 见 §1。
-> **P15 目标**：按 Final Design Specification 统一收口——Sidebar 232 / Header 60 / Content max 1600 / 书库 minmax(160,180) gap 24 / Typography (Page 28/700, Section 20/600, Body 15, BookTitle 16/600, Author 14, Meta 13) / System Font / --cw-* CSS 变量 / Radius 4/6/8 / Shadow 极简 / 无卡片阴影无放大。
-> 基线：P14 交付物（Sidebar 248 / Header 64 / 书库 160-190 / 字体已放大）为起点，在此基础上做增量调整。
+## 0. 当前施工方向 = P16（UI Bug Fix P0）
+> 完整指令/改动清单见 `docs/ui-rewrite/16-ui-bugfix-p0.md`。P15（Final Design Spec）已完成；P14（Desktop Density）已完成；P13（统一收口）见 §0b；P0–P12 见 §1。
+> **P16 目标**：修复 3 个 P0 UI Bug + 1 个 P1 Bug，不重新设计，不重构，不继续叠加 CSS。
+> - Bug 1：Book Detail 点击后跑到页面底部（应为 Overlay/Drawer）
+> - Bug 2：/author 页面文字逐字换行
+> - Bug 3：/category 页面文字逐字换行
+> - Bug 4（P1）：ASIN identifier 被错误拼接到 Amazon URL
+
+## 0.1 P16 约束（极重要）
+> **本次不是 UI 设计，不是重新设计页面，不是继续增加 CSS。只解决已存在的 Bug。**
+> - 必须先定位根因 → 修改最少代码 → 浏览器验证 → 再提交
+> - 禁止新增大量 CSS / !important / position:absolute / transform / 负 margin / 固定 height
+> - 禁止重新设计 Author / Category / Book Detail 页面
+> - 禁止删除原有页面重新写一个假的页面
+> - 必须在现有 Calibre-Web 页面结构上修复
+> - 完整禁止清单见 `16-ui-bugfix-p0.md` §二
 
 ## 0. 会话卡死根因（重要）
 `big-pickle` 模型在**超长上下文**（尤其大段 Python 拼接模板 + 反复调试文本）下生成退化、死循环，无报错、连接不断、静默 30 分钟级。
